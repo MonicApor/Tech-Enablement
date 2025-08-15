@@ -1,0 +1,23 @@
+openapi: 3.0.3
+info:
+  title: 'ANON - Anonymous Employee Platform'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: 'http://anon.local'
+paths:
+  /api/oauth/token:
+    post:
+      summary: "Authorize a client to access the user's account."
+      operationId: authorizeAClientToAccessTheUsersAccount
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+tags:
+  -
+    name: Endpoints
+    description: ''

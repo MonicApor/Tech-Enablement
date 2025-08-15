@@ -1,0 +1,145 @@
+# version: "3.9" // deprecated
+
+x-services-volume: &services-volume
+  type: bind
+  source: ./src
+  target: /var/www
+
+volumes:
+  database:
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: "./docker/nginx/Dockerfile"
+      args:
+        - ENVIRONMENT=${ENVIRONMENT}
+        - APP_DOMAIN=${APP_DOMAIN}
+        - GENERATE_SELF_SIGNED_SSL=${GENERATE_SELF_SIGNED_SSL}
+    image: ${PROJECT_NAME}_nginx:${ENVIRONMENT}
+    container_name: ${PROJECT_NAME}_nginx
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      TZ: ${TIMEZONE}
+      APP_DOMAIN: ${APP_DOMAIN}
+    links:
+      - node:app
+      - mysql:mysql
+      - php:php
+      - mailhog:mailhog
+    volumes:
+      - *services-volume
+
+  php:
+    build:
+      context: .
+      dockerfile: "./docker/php/Dockerfile"
+      args:
+        - OPCACHE_VALIDATE_TIMESTAMPS=${OPCACHE_VALIDATE_TIMESTAMPS}
+        - ENABLE_XDEBUG=${ENABLE_XDEBUG}
+    image: ${PROJECT_NAME}_php:${ENVIRONMENT}
+    container_name: ${PROJECT_NAME}_php
+    volumes:
+      - *services-volume
+      - .git:/var/www/backend/.git
+    working_dir: /var/www/backend
+    ports:
+      - "9000:9000"
+    environment:
+      TZ: ${TIMEZONE}
+      XDEBUG_CONFIG: "remote_host=10.0.2.2"
+    links:
+      - mysql:mysql
+      - redis:redis
+
+  mysql:
+    build:
+      context: .
+      dockerfile: "./docker/mysql/Dockerfile"
+    image: ${PROJECT_NAME}_mysql:${ENVIRONMENT}
+    command:
+      ["--character-set-server=utf8", "--collation-server=utf8_unicode_ci"]
+    container_name: ${PROJECT_NAME}_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TIMEZONE}
+    volumes:
+      - ./docker/mysql/scripts:/docker-entrypoint-initdb.d
+      - database:/var/lib/mysql
+
+  cron:
+    build:
+      context: .
+      dockerfile: "./docker/cron/Dockerfile"
+    image: ${PROJECT_NAME}_cron:${ENVIRONMENT}
+    container_name: ${PROJECT_NAME}_cron
+    volumes:
+      - *services-volume
+    working_dir: /var/www/backend
+    environment:
+      TZ: ${TIMEZONE}
+    links:
+      - redis:redis
+      - mysql:mysql
+      - soketi:soketi
+
+  node:
+    build:
+      context: .
+      dockerfile: "./docker/node/${ENVIRONMENT}.Dockerfile"
+    image: ${PROJECT_NAME}_node:${ENVIRONMENT}
+    container_name: ${PROJECT_NAME}_node
+    working_dir: /var/www/frontend
+    volumes:
+      - "/var/www/frontend/node_modules"
+      - *services-volume
+    environment:
+      - NODE_ENV=${ENVIRONMENT}
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "3000:3000"
+
+  redis:
+    build:
+      context: .
+      dockerfile: "./docker/redis/Dockerfile"
+    image: ${PROJECT_NAME}_redis:${ENVIRONMENT}
+    container_name: ${PROJECT_NAME}_redis
+    ports:
+      - "6379:6379"
+
+  soketi:
+    image: quay.io/soketi/soketi:1.0.0-16-alpine
+    container_name: ${PROJECT_NAME}_soketi
+    environment:
+      - SOKETI_DEBUG=${SOKETI_DEBUG}
+      - SOKETI_DEFAULT_APP_ID=${PUSHER_APP_ID}
+      - SOKETI_DEFAULT_APP_KEY=${PUSHER_APP_KEY}
+      - SOKETI_DEFAULT_APP_SECRET=${PUSHER_APP_SECRET}
+      - SOKETI_DEFAULT_APP_MAX_CONNS=-1
+      - SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES=true
+      - SOKETI_DEFAULT_APP_ENABLED=true
+      - SOKETI_DEFAULT_APP_MAX_BACKEND_EVENTS_PER_SEC=-1
+      - SOKETI_DEFAULT_APP_MAX_CLIENT_EVENTS_PER_SEC=-1
+      - SOKETI_DEFAULT_APP_MAX_READ_REQ_PER_SEC=-1
+      - SOKETI_DEFAULT_APP_WEBHOOKS=[]
+      - SOKETI_DEFAULT_APP_USER_AUTHENTICATION=false
+      - SOKETI_APP_MANAGER_CACHE_ENABLED=true
+      - SOKETI_APP_MANAGER_CACHE_TTL=-1
+    ports:
+      - 6001:6001
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: ${PROJECT_NAME}_mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
