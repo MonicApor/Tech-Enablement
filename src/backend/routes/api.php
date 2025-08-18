@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
+use App\Http\Controllers\Auth\MicrosoftController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,22 @@ Route::get('/', function () {
         'status' => 'active'
     ]);
 });
+
+// Microsoft Authentication Routes
+Route::prefix('auth')->group(function () {
+    // Public routes
+    Route::get('microsoft', [MicrosoftController::class, 'redirectToMicrosoft'])->name('auth.microsoft');
+    Route::get('microsoft/callback', [MicrosoftController::class, 'handleMicrosoftCallback'])->name('auth.microsoft.callback');
+    
+    // Protected routes
+    Route::middleware('microsoft.auth')->group(function () {
+        Route::get('user', [MicrosoftController::class, 'user'])->name('auth.user');
+        Route::post('logout', [MicrosoftController::class, 'logout'])->name('auth.logout');
+    });
+});
+
+// Legacy profile endpoint
+Route::middleware('microsoft.auth')->get('profile', [MicrosoftController::class, 'user'])->name('profile');
 
 // Build your ANON (Anonymous Employee Platform) API routes here!
 // Follow Laravel best practices:

@@ -159,6 +159,7 @@ return [
         /*
          * Package Service Providers...
          */
+        L5Swagger\L5SwaggerServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -168,6 +169,9 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+
+        //handles the microsoft authentication
+        \SocialiteProviders\Manager\ServiceProvider::class,
     ])->toArray(),
 
     /*
