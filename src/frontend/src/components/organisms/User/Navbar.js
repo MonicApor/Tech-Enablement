@@ -1,3 +1,4 @@
+import { useMicrosoftAuth } from 'hooks/useMicrosoftAuth';
 import PropTypes from 'prop-types';
 import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,9 @@ function Navbar(props) {
   const navigate = useNavigate();
   const [anchorMobileNav, setAnchorMobileNav] = useState(null);
 
+  // Use Microsoft authentication
+  const { login: microsoftLogin, logout: microsoftLogout } = useMicrosoftAuth();
+
   const menus = [
     { label: t('menu.about'), url: '/about' },
     { label: t('menu.inquiry'), url: '/inquiry' },
@@ -40,9 +44,29 @@ function Navbar(props) {
     navigate(url, { replace: true });
   };
 
+  const handleLogin = async () => {
+    try {
+      microsoftLogin();
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await microsoftLogout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const links = [
     { label: t('menu.profile'), url: '/profile' },
-    { label: t('menu.logout'), url: '/logout' },
+    {
+      label: t('menu.logout'),
+      action: handleLogout, // Use action instead of URL for logout
+      url: null,
+    },
   ];
 
   return (
@@ -54,10 +78,17 @@ function Navbar(props) {
     >
       <Container maxWidth="lg">
         <Toolbar sx={{ flexWrap: 'wrap' }} disableGutters>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex', alignItems: 'center' } }}>
             <Link to="/">
-              <img src="/static/images/sprobe-icon.png" alt={appName} height={48} />
+              <img src="/static/images/anon.png" alt={appName} height={48} />
             </Link>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ ml: 2, color: 'darkblue', fontWeight: 'bold' }}
+            >
+              ANON
+            </Typography>
           </Box>
 
           <Box component="nav" sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -85,7 +116,7 @@ function Navbar(props) {
                 justifyContent: 'center',
               }}
             >
-              <img src="/static/images/sprobe-icon.png" alt={appName} height={48} />
+              <img src="/static/images/anon.png" alt={appName} height={48} />
             </Box>
 
             <Menu
@@ -140,13 +171,11 @@ function Navbar(props) {
             </Fragment>
           ) : (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <Button component={Link} to="/signup" variant="outlined">
+              {/* <Button component={Link} to="/signup" variant="outlined">
                 {t('labels.signup')}
-              </Button>
+              </Button> */}
 
-              <Button component={Link} to="/login">
-                {t('labels.login')}
-              </Button>
+              <Button onClick={handleLogin}>Sign in with Microsoft 365</Button>
             </Box>
           )}
         </Toolbar>

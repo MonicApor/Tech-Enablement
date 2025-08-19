@@ -4,6 +4,7 @@ use App\Http\Controllers\API\HomeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
+use App\Http\Controllers\Auth\MicrosoftController;
 
 /*
 |--------------------------------------------------------------------------

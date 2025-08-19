@@ -16,9 +16,532 @@
     },
     "item": [
         {
+            "name": "Authentication",
+            "description": "\nAPIs for Office 365 authentication and user management",
+            "item": [
+                {
+                    "name": "Redirect to Microsoft OAuth",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/microsoft",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/microsoft"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Redirects user to Microsoft login page for Office 365 authentication.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to Microsoft OAuth login page",
+                            "name": ""
+                        },
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "x-ratelimit-limit",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "x-ratelimit-remaining",
+                                    "value": "59"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 500,
+                            "body": "{\n    \"message\": \"Server Error\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Handle Microsoft OAuth callback",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/microsoft\/callback",
+                            "query": [
+                                {
+                                    "key": "code",
+                                    "value": "quisquam",
+                                    "description": "Authorization code from Microsoft",
+                                    "disabled": false
+                                }
+                            ],
+                            "raw": "{{baseUrl}}\/api\/auth\/microsoft\/callback?code=quisquam"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Processes Microsoft OAuth callback, validates user, and creates session.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to frontend dashboard based on user role",
+                            "name": ""
+                        },
+                        {
+                            "header": [],
+                            "code": 403,
+                            "body": "{\"error\": \"Guests not allowed\"}",
+                            "name": ""
+                        },
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "x-ratelimit-limit",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "x-ratelimit-remaining",
+                                    "value": "58"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 500,
+                            "body": "{\n    \"message\": \"Server Error\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Logout user",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/logout",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/logout"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Destroys user session and redirects to home page.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to home page",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Get current authenticated user",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/user",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/user"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Returns current user information from session.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"id\": 1,\n  \"name\": \"John Doe\",\n  \"email\": \"john@company.com\",\n  \"username\": \"User1234\",\n  \"role\": \"Employee\",\n  \"user_type\": \"Member\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Redirect to Microsoft OAuth",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "auth\/microsoft",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/auth\/microsoft"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Redirects user to Microsoft login page for Office 365 authentication.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to Microsoft OAuth login page",
+                            "name": ""
+                        },
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "set-cookie",
+                                    "value": "XSRF-TOKEN=eyJpdiI6IjhoU21hZFNUc254N3doM0N5OXEveGc9PSIsInZhbHVlIjoidGg5RUQzS00zLytCTkFJQVZrZW1lL3UzQnd1aGNlN0RwU0Fyd1UwcHJrcXAvTkh4UmJzTGNyd2lwb1UrQldZdlA3ekdnN3l2MUtuRVVsenFpUTFocDQxLzNSdUNPNTRHR050MHJwM3JBSXFVOUpxdlFyRTJ0VDI4VWpQNnNhRHEiLCJtYWMiOiI3YTA2YjdlZTkyYTk3ZWY1OTcyZTFkYWM4NDM3MWUzOWY0ODE5ZDg2MWEwODM0MDhjMThlZTk1YWE5MzlhNGM0IiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; samesite=lax; anon_anonymous_employee_platform_session=eyJpdiI6IjBIeTNMZWtDOFdnOGQ5MVlBbHZIeVE9PSIsInZhbHVlIjoieVJScWlnYnRmaFkzTHV6VjBIU25JRnU5NnpxbmN3Wm8wN0ZHNGFwSFVQdGxmeFJHU1crcjdmeXozUVREUURkbG0xaVhzTDZvRkMzcldLMyswLzN0anIxakNZRTRrc0tyZEV3OU1zcHN4bFZ3TUhTUUoxMXY0cEhGY1Rxa1VXbmgiLCJtYWMiOiI5NmJmN2RkMmE4ZmYzNjE4OTRjMGQwZThjMGU4YmZmMDIyMGViMDhmMDhhYTQ4ZmYyMGEwNThhZjQ4YTM5NWM3IiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; httponly; samesite=lax"
+                                }
+                            ],
+                            "code": 500,
+                            "body": "{\n    \"message\": \"Server Error\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Handle Microsoft OAuth callback",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "auth\/microsoft\/callback",
+                            "query": [
+                                {
+                                    "key": "code",
+                                    "value": "rem",
+                                    "description": "Authorization code from Microsoft",
+                                    "disabled": false
+                                }
+                            ],
+                            "raw": "{{baseUrl}}\/auth\/microsoft\/callback?code=rem"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Processes Microsoft OAuth callback, validates user, and creates session.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to frontend dashboard based on user role",
+                            "name": ""
+                        },
+                        {
+                            "header": [],
+                            "code": 403,
+                            "body": "{\"error\": \"Guests not allowed\"}",
+                            "name": ""
+                        },
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "set-cookie",
+                                    "value": "XSRF-TOKEN=eyJpdiI6IjhqWFdmVmtyTlYraGxCbXFOaktiV3c9PSIsInZhbHVlIjoiWnJnOUNSb1J0d3lycnJyUFpZUHZZdFZ0YWxFNGdnN3djelJ1WWJMMmtSNkZEZUdRSzZHSENBWkRxMTlEZlAxMm0rSVZua1U4clRpNUVGaWJ5YzkxVVU0dUdGT3kydFlkcEpYTWcwVXBSMnk1cjU5WHBYZnB6SkdVakV5U3VyMU4iLCJtYWMiOiI0YzUxM2I2NTgwM2EyNDc0ZWNkNDEyNDQ0NzIwYTdhYzRjZGUxNjE1MDQ4ZTk5NzFmNDg0MjJjNjEyYzY3NDJlIiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; samesite=lax; anon_anonymous_employee_platform_session=eyJpdiI6IjYyL2pBNjJpVjM3dExxZlhKZ0ZWZkE9PSIsInZhbHVlIjoicHVQMWdJRnBtOFhEM01lMGFTMStyeWpRSUZ5bnR3aFV3NGRRU2IyMno0RGZUc3Q2ZlRScmYybEgrb0VKSDlHSGRkNnMwZElaTjYyam9TRTZuQmE4RGVQckxWcGpyb1VzKzVLcVc5YmpyZzJaZXpBU3AwWHBOTWlIeEVWcnMvbFEiLCJtYWMiOiJmMmMxZmEyZTk2MDczZDYyMWM5YmMxZmFiNTJiNDZmZTI3NGMzZWNlNTI0YTUzMWNiNWQ4MzliNmFlNzkxOTBiIiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; httponly; samesite=lax"
+                                }
+                            ],
+                            "code": 500,
+                            "body": "{\n    \"message\": \"Server Error\"\n}",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Logout user",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "auth\/logout",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/auth\/logout"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Destroys user session and redirects to home page.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 302,
+                            "body": "Redirect to home page",
+                            "name": ""
+                        },
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "location",
+                                    "value": "http:\/\/anon.local"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "text\/html; charset=utf-8"
+                                },
+                                {
+                                    "key": "set-cookie",
+                                    "value": "XSRF-TOKEN=eyJpdiI6Ink2VFBjTEpqZUdFZldUNkFoKzQ1OFE9PSIsInZhbHVlIjoiWmdncEFjbXo0eGRXSUtWSDFzWEdUY0xDeUhnTHkwaXBkb0dPNFRtMTI3ZEJZNS9WNTlrZytIbVkzcjhRYW1PTnFqWE14dXV1dExDN2hTVkFHWWZ1Q3hUV2xFK2pQOVNrb1U4U3FzMWVjMVpBS2NIWGU3OW1wUnhGUUgwNENtRTAiLCJtYWMiOiJjNGRiNDJhNmM5ZTlkZmNlOGIzNTc2MTFhODZhZjc2ODc2MmY4Y2VmYTEyNTdiNGNiMDY2NWQzZjdmZjYxZDE2IiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; samesite=lax; anon_anonymous_employee_platform_session=eyJpdiI6IjdGeFQ1UVIrVHc5TmpHMHpBWTZMY0E9PSIsInZhbHVlIjoibHJsT1NaUUNzdVVvN29tWjh6VnBqaHkzSU41dURWVXJpRkxZZDFzNlNhcHRQWUZwN09VZG1pL3NoRE51REIyUmoxWDZqdHlxc3QyRW1TajA5NkN4cXZoVFhxK2dHbDdOdU93L3pML1djVks2RStyQU82bmhYWXRRcEkvTlV0QXAiLCJtYWMiOiJjNTRhZDZlMzZlNjU3OGM1N2M0YmM2YWIyNWZiZTY1NmE4NjVhZDhmZGE2MGI1NmM3ZmNlZTliNjVhMGRlZjYxIiwidGFnIjoiIn0%3D; expires=Mon, 18 Aug 2025 13:27:50 GMT; Max-Age=7200; path=\/; httponly; samesite=lax"
+                                }
+                            ],
+                            "code": 302,
+                            "body": "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" \/>\n        <meta http-equiv=\"refresh\" content=\"0;url='http:\/\/anon.local'\" \/>\n\n        <title>Redirecting to http:\/\/anon.local<\/title>\n    <\/head>\n    <body>\n        Redirecting to <a href=\"http:\/\/anon.local\">http:\/\/anon.local<\/a>.\n    <\/body>\n<\/html>",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Get current authenticated user",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "auth\/user",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/auth\/user"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Returns current user information from session.",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [],
+                            "code": 200,
+                            "body": "{\n  \"id\": 1,\n  \"name\": \"John Doe\",\n  \"email\": \"john@company.com\",\n  \"username\": \"User1234\",\n  \"role\": \"Employee\",\n  \"user_type\": \"Member\"\n}",
+                            "name": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "name": "Endpoints",
             "description": "",
             "item": [
+                {
+                    "name": "Display Swagger API page.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/documentation",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/documentation"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 200,
+                            "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>L5 Swagger UI<\/title>\n    <link rel=\"stylesheet\" type=\"text\/css\" href=\"http:\/\/anon.local\/docs\/asset\/swagger-ui.css?v=55452c2f2bab78af23f9300aaad5a4ed\">\n    <link rel=\"icon\" type=\"image\/png\" href=\"http:\/\/anon.local\/docs\/asset\/favicon-32x32.png?v=40d4f2c38d1cd854ad463f16373cbcb6\" sizes=\"32x32\"\/>\n    <link rel=\"icon\" type=\"image\/png\" href=\"http:\/\/anon.local\/docs\/asset\/favicon-16x16.png?v=f0ae831196d55d8f4115b6c5e8ec5384\" sizes=\"16x16\"\/>\n    <style>\n    html\n    {\n        box-sizing: border-box;\n        overflow: -moz-scrollbars-vertical;\n        overflow-y: scroll;\n    }\n    *,\n    *:before,\n    *:after\n    {\n        box-sizing: inherit;\n    }\n\n    body {\n      margin:0;\n      background: #fafafa;\n    }\n    <\/style>\n    <\/head>\n\n<body >\n<div id=\"swagger-ui\"><\/div>\n\n<script src=\"http:\/\/anon.local\/docs\/asset\/swagger-ui-bundle.js?v=7725b03bbfbc5bb0d8a0aa2f23a5ad81\"><\/script>\n<script src=\"http:\/\/anon.local\/docs\/asset\/swagger-ui-standalone-preset.js?v=c52d69e3948ac5fdffc432e95fc737a3\"><\/script>\n<script>\n    window.onload = function() {\n        \/\/ Build a system\n        const ui = SwaggerUIBundle({\n            dom_id: '#swagger-ui',\n            url: \"http:\/\/anon.local\/docs?api-docs.json\",\n            operationsSorter: null,\n            configUrl: null,\n            validatorUrl: null,\n            oauth2RedirectUrl: \"http:\/\/anon.local\/api\/oauth2-callback\",\n\n            requestInterceptor: function(request) {\n                request.headers['X-CSRF-TOKEN'] = '';\n                return request;\n            },\n\n            presets: [\n                SwaggerUIBundle.presets.apis,\n                SwaggerUIStandalonePreset\n            ],\n\n            plugins: [\n                SwaggerUIBundle.plugins.DownloadUrl\n            ],\n\n            layout: \"StandaloneLayout\",\n            docExpansion : \"none\",\n            deepLinking: true,\n            filter: true,\n            persistAuthorization: \"false\",\n\n        })\n\n        window.ui = ui\n\n            }\n<\/script>\n<\/body>\n<\/html>\n",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Display Oauth2 callback pages.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/oauth2-callback",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/oauth2-callback"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "content-type",
+                                    "value": "text\/html; charset=UTF-8"
+                                },
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 200,
+                            "body": "<!doctype html>\n<html lang=\"en-US\">\n<head>\n    <title>Swagger UI: OAuth2 Redirect<\/title>\n<\/head>\n<body>\n<script>\n    'use strict';\n    function run () {\n        var oauth2 = window.opener.swaggerUIRedirectOauth2;\n        var sentState = oauth2.state;\n        var redirectUrl = oauth2.redirectUrl;\n        var isValid, qp, arr;\n\n        if (\/code|token|error\/.test(window.location.hash)) {\n            qp = window.location.hash.substring(1).replace('?', '&');\n        } else {\n            qp = location.search.substring(1);\n        }\n\n        arr = qp.split(\"&\");\n        arr.forEach(function (v,i,_arr) { _arr[i] = '\"' + v.replace('=', '\":\"') + '\"';});\n        qp = qp ? JSON.parse('{' + arr.join() + '}',\n                function (key, value) {\n                    return key === \"\" ? value : decodeURIComponent(value);\n                }\n        ) : {};\n\n        isValid = qp.state === sentState;\n\n        if ((\n          oauth2.auth.schema.get(\"flow\") === \"accessCode\" ||\n          oauth2.auth.schema.get(\"flow\") === \"authorizationCode\" ||\n          oauth2.auth.schema.get(\"flow\") === \"authorization_code\"\n        ) && !oauth2.auth.code) {\n            if (!isValid) {\n                oauth2.errCb({\n                    authId: oauth2.auth.name,\n                    source: \"auth\",\n                    level: \"warning\",\n                    message: \"Authorization may be unsafe, passed state was changed in server. The passed state wasn't returned from auth server.\"\n                });\n            }\n\n            if (qp.code) {\n                delete oauth2.state;\n                oauth2.auth.code = qp.code;\n                oauth2.callback({auth: oauth2.auth, redirectUrl: redirectUrl});\n            } else {\n                let oauthErrorMsg;\n                if (qp.error) {\n                    oauthErrorMsg = \"[\"+qp.error+\"]: \" +\n                        (qp.error_description ? qp.error_description+ \". \" : \"no accessCode received from the server. \") +\n                        (qp.error_uri ? \"More info: \"+qp.error_uri : \"\");\n                }\n\n                oauth2.errCb({\n                    authId: oauth2.auth.name,\n                    source: \"auth\",\n                    level: \"error\",\n                    message: oauthErrorMsg || \"[Authorization failed]: no accessCode received from the server.\"\n                });\n            }\n        } else {\n            oauth2.callback({auth: oauth2.auth, token: qp, isValid: isValid, redirectUrl: redirectUrl});\n        }\n        window.close();\n    }\n\n    if (document.readyState !== 'loading') {\n        run();\n    } else {\n        document.addEventListener('DOMContentLoaded', function () {\n            run();\n        });\n    }\n<\/script>\n<\/body>\n<\/html>\n",
+                            "name": ""
+                        }
+                    ]
+                },
                 {
                     "name": "Authorize a client to access the user's account.",
                     "request": {

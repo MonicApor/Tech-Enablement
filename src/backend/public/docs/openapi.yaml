@@ -6,7 +6,335 @@ info:
 servers:
   -
     url: 'http://anon.local'
+tags:
+  -
+    name: Authentication
+    description: "\nAPIs for Office 365 authentication and user management"
+  -
+    name: Endpoints
+    description: ''
 paths:
+  /api/auth/microsoft:
+    get:
+      summary: 'Redirect to Microsoft OAuth'
+      operationId: redirectToMicrosoftOAuth
+      description: 'Redirects user to Microsoft login page for Office 365 authentication.'
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Redirect to Microsoft OAuth login page'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Authentication
+      security: []
+  /api/auth/microsoft/callback:
+    get:
+      summary: 'Handle Microsoft OAuth callback'
+      operationId: handleMicrosoftOAuthCallback
+      description: 'Processes Microsoft OAuth callback, validates user, and creates session.'
+      parameters:
+        -
+          in: query
+          name: code
+          description: 'Authorization code from Microsoft'
+          example: quisquam
+          required: true
+          schema:
+            type: string
+            description: 'Authorization code from Microsoft'
+            example: quisquam
+            nullable: false
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Redirect to frontend dashboard based on user role'
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Guests not allowed'
+                properties:
+                  error:
+                    type: string
+                    example: 'Guests not allowed'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Authentication
+      security: []
+  /api/auth/logout:
+    post:
+      summary: 'Logout user'
+      operationId: logoutUser
+      description: 'Destroys user session and redirects to home page.'
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Redirect to home page'
+      tags:
+        - Authentication
+      security: []
+  /api/auth/user:
+    get:
+      summary: 'Get current authenticated user'
+      operationId: getCurrentAuthenticatedUser
+      description: 'Returns current user information from session.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'John Doe'
+                  email: john@company.com
+                  username: User1234
+                  role: Employee
+                  user_type: Member
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'John Doe'
+                  email:
+                    type: string
+                    example: john@company.com
+                  username:
+                    type: string
+                    example: User1234
+                  role:
+                    type: string
+                    example: Employee
+                  user_type:
+                    type: string
+                    example: Member
+      tags:
+        - Authentication
+      security: []
+  /auth/microsoft:
+    get:
+      summary: 'Redirect to Microsoft OAuth'
+      operationId: redirectToMicrosoftOAuth
+      description: 'Redirects user to Microsoft login page for Office 365 authentication.'
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Redirect to Microsoft OAuth login page'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Authentication
+      security: []
+  /auth/microsoft/callback:
+    get:
+      summary: 'Handle Microsoft OAuth callback'
+      operationId: handleMicrosoftOAuthCallback
+      description: 'Processes Microsoft OAuth callback, validates user, and creates session.'
+      parameters:
+        -
+          in: query
+          name: code
+          description: 'Authorization code from Microsoft'
+          example: rem
+          required: true
+          schema:
+            type: string
+            description: 'Authorization code from Microsoft'
+            example: rem
+            nullable: false
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Redirect to frontend dashboard based on user role'
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'Guests not allowed'
+                properties:
+                  error:
+                    type: string
+                    example: 'Guests not allowed'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Server Error'
+                properties:
+                  message:
+                    type: string
+                    example: 'Server Error'
+      tags:
+        - Authentication
+      security: []
+  /auth/logout:
+    get:
+      summary: 'Logout user'
+      operationId: logoutUser
+      description: 'Destroys user session and redirects to home page.'
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                oneOf:
+                  -
+                    description: ''
+                    type: string
+                    example: 'Redirect to home page'
+                  -
+                    description: ''
+                    type: string
+                    example: "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" />\n        <meta http-equiv=\"refresh\" content=\"0;url='http://anon.local'\" />\n\n        <title>Redirecting to http://anon.local</title>\n    </head>\n    <body>\n        Redirecting to <a href=\"http://anon.local\">http://anon.local</a>.\n    </body>\n</html>"
+      tags:
+        - Authentication
+      security: []
+  /auth/user:
+    get:
+      summary: 'Get current authenticated user'
+      operationId: getCurrentAuthenticatedUser
+      description: 'Returns current user information from session.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  name: 'John Doe'
+                  email: john@company.com
+                  username: User1234
+                  role: Employee
+                  user_type: Member
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: 'John Doe'
+                  email:
+                    type: string
+                    example: john@company.com
+                  username:
+                    type: string
+                    example: User1234
+                  role:
+                    type: string
+                    example: Employee
+                  user_type:
+                    type: string
+                    example: Member
+      tags:
+        - Authentication
+      security: []
+  /api/documentation:
+    get:
+      summary: 'Display Swagger API page.'
+      operationId: displaySwaggerAPIPage
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>L5 Swagger UI</title>\n    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://anon.local/docs/asset/swagger-ui.css?v=55452c2f2bab78af23f9300aaad5a4ed\">\n    <link rel=\"icon\" type=\"image/png\" href=\"http://anon.local/docs/asset/favicon-32x32.png?v=40d4f2c38d1cd854ad463f16373cbcb6\" sizes=\"32x32\"/>\n    <link rel=\"icon\" type=\"image/png\" href=\"http://anon.local/docs/asset/favicon-16x16.png?v=f0ae831196d55d8f4115b6c5e8ec5384\" sizes=\"16x16\"/>\n    <style>\n    html\n    {\n        box-sizing: border-box;\n        overflow: -moz-scrollbars-vertical;\n        overflow-y: scroll;\n    }\n    *,\n    *:before,\n    *:after\n    {\n        box-sizing: inherit;\n    }\n\n    body {\n      margin:0;\n      background: #fafafa;\n    }\n    </style>\n    </head>\n\n<body >\n<div id=\"swagger-ui\"></div>\n\n<script src=\"http://anon.local/docs/asset/swagger-ui-bundle.js?v=7725b03bbfbc5bb0d8a0aa2f23a5ad81\"></script>\n<script src=\"http://anon.local/docs/asset/swagger-ui-standalone-preset.js?v=c52d69e3948ac5fdffc432e95fc737a3\"></script>\n<script>\n    window.onload = function() {\n        // Build a system\n        const ui = SwaggerUIBundle({\n            dom_id: '#swagger-ui',\n            url: \"http://anon.local/docs?api-docs.json\",\n            operationsSorter: null,\n            configUrl: null,\n            validatorUrl: null,\n            oauth2RedirectUrl: \"http://anon.local/api/oauth2-callback\",\n\n            requestInterceptor: function(request) {\n                request.headers['X-CSRF-TOKEN'] = '';\n                return request;\n            },\n\n            presets: [\n                SwaggerUIBundle.presets.apis,\n                SwaggerUIStandalonePreset\n            ],\n\n            plugins: [\n                SwaggerUIBundle.plugins.DownloadUrl\n            ],\n\n            layout: \"StandaloneLayout\",\n            docExpansion : \"none\",\n            deepLinking: true,\n            filter: true,\n            persistAuthorization: \"false\",\n\n        })\n\n        window.ui = ui\n\n            }\n</script>\n</body>\n</html>\n"
+      tags:
+        - Endpoints
+      security: []
+  /api/oauth2-callback:
+    get:
+      summary: 'Display Oauth2 callback pages.'
+      operationId: displayOauth2CallbackPages
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "<!doctype html>\n<html lang=\"en-US\">\n<head>\n    <title>Swagger UI: OAuth2 Redirect</title>\n</head>\n<body>\n<script>\n    'use strict';\n    function run () {\n        var oauth2 = window.opener.swaggerUIRedirectOauth2;\n        var sentState = oauth2.state;\n        var redirectUrl = oauth2.redirectUrl;\n        var isValid, qp, arr;\n\n        if (/code|token|error/.test(window.location.hash)) {\n            qp = window.location.hash.substring(1).replace('?', '&');\n        } else {\n            qp = location.search.substring(1);\n        }\n\n        arr = qp.split(\"&\");\n        arr.forEach(function (v,i,_arr) { _arr[i] = '\"' + v.replace('=', '\":\"') + '\"';});\n        qp = qp ? JSON.parse('{' + arr.join() + '}',\n                function (key, value) {\n                    return key === \"\" ? value : decodeURIComponent(value);\n                }\n        ) : {};\n\n        isValid = qp.state === sentState;\n\n        if ((\n          oauth2.auth.schema.get(\"flow\") === \"accessCode\" ||\n          oauth2.auth.schema.get(\"flow\") === \"authorizationCode\" ||\n          oauth2.auth.schema.get(\"flow\") === \"authorization_code\"\n        ) && !oauth2.auth.code) {\n            if (!isValid) {\n                oauth2.errCb({\n                    authId: oauth2.auth.name,\n                    source: \"auth\",\n                    level: \"warning\",\n                    message: \"Authorization may be unsafe, passed state was changed in server. The passed state wasn't returned from auth server.\"\n                });\n            }\n\n            if (qp.code) {\n                delete oauth2.state;\n                oauth2.auth.code = qp.code;\n                oauth2.callback({auth: oauth2.auth, redirectUrl: redirectUrl});\n            } else {\n                let oauthErrorMsg;\n                if (qp.error) {\n                    oauthErrorMsg = \"[\"+qp.error+\"]: \" +\n                        (qp.error_description ? qp.error_description+ \". \" : \"no accessCode received from the server. \") +\n                        (qp.error_uri ? \"More info: \"+qp.error_uri : \"\");\n                }\n\n                oauth2.errCb({\n                    authId: oauth2.auth.name,\n                    source: \"auth\",\n                    level: \"error\",\n                    message: oauthErrorMsg || \"[Authorization failed]: no accessCode received from the server.\"\n                });\n            }\n        } else {\n            oauth2.callback({auth: oauth2.auth, token: qp, isValid: isValid, redirectUrl: redirectUrl});\n        }\n        window.close();\n    }\n\n    if (document.readyState !== 'loading') {\n        run();\n    } else {\n        document.addEventListener('DOMContentLoaded', function () {\n            run();\n        });\n    }\n</script>\n</body>\n</html>\n"
+      tags:
+        - Endpoints
+      security: []
   /api/oauth/token:
     post:
       summary: "Authorize a client to access the user's account."

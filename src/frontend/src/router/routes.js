@@ -1,4 +1,6 @@
-// import admin from './admin'; // Commented out - you'll create your own admin routes
+import admin from './admin';
+import employee from './employee';
+import hr from './hr';
 
 const routes = [
   // Essential routes - Don't Remove. Handle 404 Pages
@@ -68,28 +70,9 @@ const routes = [
   //   auth: false,
   // },
 
-  // Authenticated Routes
-  // {
-  //   path: '/profile',
-  //   component: 'pages/authenticated/Profile',
-  //   auth: true,
-  // },
-
-  // Admin Routes - you'll create these for your ANON platform
-  // ...admin,
-
-  // YOUR ANON PLATFORM ROUTES - Add your custom routes here:
-  // Example:
-  // {
-  //   path: '/posts',
-  //   component: 'pages/authenticated/Posts',
-  //   auth: true,
-  // },
-  // {
-  //   path: '/posts/create',
-  //   component: 'pages/authenticated/CreatePost',
-  //   auth: true,
-  // },
+  ...admin,
+  ...hr,
+  ...employee,
 ];
 
 // Don't include styleguide in production routes
