@@ -25,6 +25,16 @@ Route::prefix('auth')->group(function () {
     Route::post('/microsoft/validate', [App\Http\Controllers\Auth\MicrosoftController::class, 'validateMsalToken']);
     Route::post('/logout', [App\Http\Controllers\Auth\MicrosoftController::class, 'logout']);
     Route::get('/user', [App\Http\Controllers\Auth\MicrosoftController::class, 'user']);
+    
+    // Test endpoint
+    Route::get('/test', function () {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Backend API is working',
+            'timestamp' => now()->toISOString(),
+            'passport_keys_exist' => file_exists(storage_path('oauth-private.key')) && file_exists(storage_path('oauth-public.key'))
+        ]);
+    });
 });
 
 // Default API Homepage

@@ -48,6 +48,7 @@ services:
     working_dir: /var/www/backend
     ports:
       - "9000:9000"
+      - "8000:8000"
     environment:
       TZ: ${TIMEZONE}
       XDEBUG_CONFIG: "remote_host=10.0.2.2"
@@ -74,6 +75,21 @@ services:
     volumes:
       - ./docker/mysql/scripts:/docker-entrypoint-initdb.d
       - database:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ${PROJECT_NAME}_phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    links:
+      - mysql:mysql
+    depends_on:
+      - mysql
 
   cron:
     build:
@@ -104,6 +120,9 @@ services:
     environment:
       - NODE_ENV=${ENVIRONMENT}
       - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_AZURE_CLIENT_ID=${REACT_APP_AZURE_CLIENT_ID}
+      - REACT_APP_AZURE_TENANT_ID=${REACT_APP_AZURE_TENANT_ID}
+      - REACT_APP_API_URL=http://localhost:8000/api
     ports:
       - "3000:3000"
 

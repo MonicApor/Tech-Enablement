@@ -9,9 +9,7 @@ import { LogLevel } from '@azure/msal-browser';
 export const msalConfig = {
   auth: {
     clientId: process.env.REACT_APP_AZURE_CLIENT_ID || 'placeholder-client-id',
-    authority: `https://login.microsoftonline.com/${
-      process.env.REACT_APP_AZURE_TENANT_ID || 'placeholder-tenant-id'
-    }`,
+    authority: 'https://login.microsoftonline.com/common', // Multitenant
     redirectUri: `${window.location.origin}`,
     postLogoutRedirectUri: `${window.location.origin}/login`,
   },
@@ -53,8 +51,8 @@ export const msalConfig = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 export const loginRequest = {
-  scopes: ['User.Read'],
-  prompt: 'select_account',
+  scopes: [],
+  prompt: 'consent',
 };
 
 /**
