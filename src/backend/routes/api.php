@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\HomeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
@@ -17,14 +18,17 @@ use Laravel\Passport\Http\Controllers\AccessTokenController;
 
 Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->middleware('throttle')->name('passport.auth');
 
-// Default API Homepage
-Route::get('/', function () {
-    return response()->json([
-        'message' => 'Welcome to ANON API - Anonymous Employee Platform',
-        'version' => '1.0.0',
-        'status' => 'active'
-    ]);
+// Microsoft 365 Authentication Routes
+Route::prefix('auth')->group(function () {
+    Route::get('/microsoft', [App\Http\Controllers\Auth\MicrosoftController::class, 'redirectToMicrosoft']);
+    Route::get('/microsoft/callback', [App\Http\Controllers\Auth\MicrosoftController::class, 'handleMicrosoftCallback']);
+    Route::post('/microsoft/validate', [App\Http\Controllers\Auth\MicrosoftController::class, 'validateMsalToken']);
+    Route::post('/logout', [App\Http\Controllers\Auth\MicrosoftController::class, 'logout']);
+    Route::get('/user', [App\Http\Controllers\Auth\MicrosoftController::class, 'user']);
 });
+
+// Default API Homepage
+Route::get('/', [HomeController::class, '__invoke']);
 
 // Build your ANON (Anonymous Employee Platform) API routes here!
 // Follow Laravel best practices:

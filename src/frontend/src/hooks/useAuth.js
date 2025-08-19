@@ -11,13 +11,13 @@ export const useAuth = ({ middleware, location, redirectIfAuthenticated } = {}) 
     error,
     mutate,
   } = useSWR(
-    '/profile',
+    '/auth/user',
     () =>
       api
-        .get('/profile')
-        .then((res) => res.data.data)
-        .catch(() => {
-          if (error.response.status != 409) throw error;
+        .get('/auth/user')
+        .then((res) => res.data.user)
+        .catch((error) => {
+          if (error.response?.status !== 409) throw error;
           navigate('/verify-email');
         }),
     {
@@ -43,16 +43,25 @@ export const useAuth = ({ middleware, location, redirectIfAuthenticated } = {}) 
       });
   };
 
+  const login365 = () => {
+    window.location.href = `${process.env.REACT_APP_API_URL}/auth/microsoft`;
+  };
+
   const logout = async () => {
     if (!error) {
-      return await api.delete('/oauth/token').then(() => {
-        localStorage.clear();
-        window.location = '/login?ref=logout';
-      });
+      try {
+        await api.post('/auth/logout');
+      } catch (error) {
+        console.error('Backend logout failed:', error);
+      }
+
+      localStorage.clear();
+
+      window.location.href = `${process.env.REACT_APP_API_URL}/auth/logout`;
+      return;
     }
 
-    // if not authenticated, set redirect url to the url accessed by user
-    window.location = `/login?redirect_to=${location.pathname}`;
+    window.location = `/login?redirect_to=${location?.pathname || '/'}`;
   };
 
   useEffect(() => {
@@ -63,6 +72,7 @@ export const useAuth = ({ middleware, location, redirectIfAuthenticated } = {}) 
   return {
     user,
     login,
+    login365,
     logout,
     mutate,
   };

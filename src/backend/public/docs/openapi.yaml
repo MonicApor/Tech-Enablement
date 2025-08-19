@@ -17,6 +17,72 @@ paths:
       tags:
         - Endpoints
       security: []
+  /api/auth/microsoft:
+    get:
+      summary: 'Redirect the user to the Microsoft Entra ID authentication page.'
+      operationId: redirectTheUserToTheMicrosoftEntraIDAuthenticationPage
+      description: 'Using Authorization Code flow for web applications'
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" />\n        <meta http-equiv=\"refresh\" content=\"0;url='https://login.microsoftonline.com/52a794a7-79c8-463a-875c-4315657b086f/oauth2/v2.0/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account'\" />\n\n        <title>Redirecting to https://login.microsoftonline.com/52a794a7-79c8-463a-875c-4315657b086f/oauth2/v2.0/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account</title>\n    </head>\n    <body>\n        Redirecting to <a href=\"https://login.microsoftonline.com/52a794a7-79c8-463a-875c-4315657b086f/oauth2/v2.0/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account\">https://login.microsoftonline.com/52a794a7-79c8-463a-875c-4315657b086f/oauth2/v2.0/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account</a>.\n    </body>\n</html>"
+      tags:
+        - Endpoints
+      security: []
+  /api/auth/microsoft/callback:
+    get:
+      summary: 'Handle Microsoft Entra ID callback with proper OIDC validation'
+      operationId: handleMicrosoftEntraIDCallbackWithProperOIDCValidation
+      description: ''
+      parameters: []
+      responses:
+        302:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" />\n        <meta http-equiv=\"refresh\" content=\"0;url='http://anon.local/login'\" />\n\n        <title>Redirecting to http://anon.local/login</title>\n    </head>\n    <body>\n        Redirecting to <a href=\"http://anon.local/login\">http://anon.local/login</a>.\n    </body>\n</html>"
+      tags:
+        - Endpoints
+      security: []
+  /api/auth/logout:
+    post:
+      summary: 'Handle logout'
+      operationId: handleLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Endpoints
+      security: []
+  /api/auth/user:
+    get:
+      summary: 'Get the authenticated user'
+      operationId: getTheAuthenticatedUser
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  user: null
+                properties:
+                  user:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+      security: []
 tags:
   -
     name: Endpoints

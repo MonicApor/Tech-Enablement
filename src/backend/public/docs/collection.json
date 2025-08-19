@@ -10,7 +10,7 @@
     ],
     "info": {
         "name": "ANON - Anonymous Employee Platform",
-        "_postman_id": "b4fc8df7-a0f3-499c-8d42-4ca17a7a03a9",
+        "_postman_id": "b277288f-09de-4b37-a230-2e6dc07c9f24",
         "description": "",
         "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
     },
@@ -46,6 +46,210 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Redirect the user to the Microsoft Entra ID authentication page.",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/microsoft",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/microsoft"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "Using Authorization Code flow for web applications",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "location",
+                                    "value": "https:\/\/login.microsoftonline.com\/52a794a7-79c8-463a-875c-4315657b086f\/oauth2\/v2.0\/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&response_type=code&redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&scope=openid+profile+email+User.Read&state=bd29a82403bbbdf6c0ea6c018d144e00&response_mode=query&prompt=select_account"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "text\/html; charset=utf-8"
+                                },
+                                {
+                                    "key": "x-ratelimit-limit",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "x-ratelimit-remaining",
+                                    "value": "59"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 302,
+                            "body": "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" \/>\n        <meta http-equiv=\"refresh\" content=\"0;url='https:\/\/login.microsoftonline.com\/52a794a7-79c8-463a-875c-4315657b086f\/oauth2\/v2.0\/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account'\" \/>\n\n        <title>Redirecting to https:\/\/login.microsoftonline.com\/52a794a7-79c8-463a-875c-4315657b086f\/oauth2\/v2.0\/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account<\/title>\n    <\/head>\n    <body>\n        Redirecting to <a href=\"https:\/\/login.microsoftonline.com\/52a794a7-79c8-463a-875c-4315657b086f\/oauth2\/v2.0\/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account\">https:\/\/login.microsoftonline.com\/52a794a7-79c8-463a-875c-4315657b086f\/oauth2\/v2.0\/authorize?client_id=e5875fdf-db09-4a33-9c79-2dd37cf1cb94&amp;response_type=code&amp;redirect_uri=http%3A%2F%2Fanon.local%2Fapi%2Fauth%2Fmicrosoft%2Fcallback&amp;scope=openid+profile+email+User.Read&amp;state=bd29a82403bbbdf6c0ea6c018d144e00&amp;response_mode=query&amp;prompt=select_account<\/a>.\n    <\/body>\n<\/html>",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Handle Microsoft Entra ID callback with proper OIDC validation",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/microsoft\/callback",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/microsoft\/callback"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "location",
+                                    "value": "http:\/\/anon.local\/login"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "text\/html; charset=utf-8"
+                                },
+                                {
+                                    "key": "x-ratelimit-limit",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "x-ratelimit-remaining",
+                                    "value": "58"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 302,
+                            "body": "<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"UTF-8\" \/>\n        <meta http-equiv=\"refresh\" content=\"0;url='http:\/\/anon.local\/login'\" \/>\n\n        <title>Redirecting to http:\/\/anon.local\/login<\/title>\n    <\/head>\n    <body>\n        Redirecting to <a href=\"http:\/\/anon.local\/login\">http:\/\/anon.local\/login<\/a>.\n    <\/body>\n<\/html>",
+                            "name": ""
+                        }
+                    ]
+                },
+                {
+                    "name": "Handle logout",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/logout",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/logout"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get the authenticated user",
+                    "request": {
+                        "url": {
+                            "host": "{{baseUrl}}",
+                            "path": "api\/auth\/user",
+                            "query": [],
+                            "raw": "{{baseUrl}}\/api\/auth\/user"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": null,
+                        "description": "",
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    },
+                    "response": [
+                        {
+                            "header": [
+                                {
+                                    "key": "cache-control",
+                                    "value": "no-cache, private"
+                                },
+                                {
+                                    "key": "content-type",
+                                    "value": "application\/json"
+                                },
+                                {
+                                    "key": "x-ratelimit-limit",
+                                    "value": "60"
+                                },
+                                {
+                                    "key": "x-ratelimit-remaining",
+                                    "value": "57"
+                                },
+                                {
+                                    "key": "access-control-allow-origin",
+                                    "value": "*"
+                                }
+                            ],
+                            "code": 401,
+                            "body": "{\"user\":null}",
+                            "name": ""
+                        }
+                    ]
                 }
             ]
         }

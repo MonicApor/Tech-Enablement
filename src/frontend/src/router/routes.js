@@ -27,11 +27,11 @@ const routes = [
   //   component: 'pages/guest/Signup',
   //   auth: false,
   // },
-  // {
-  //   path: '/login',
-  //   component: 'pages/guest/Login',
-  //   auth: false,
-  // },
+  {
+    path: '/login',
+    component: 'pages/guest/Login',
+    auth: false,
+  },
   // {
   //   path: '/forgot-password',
   //   component: 'pages/guest/ForgotPassword',

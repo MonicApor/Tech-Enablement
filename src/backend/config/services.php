@@ -31,4 +31,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'microsoft-azure' => [
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect' => env('MICROSOFT_REDIRECT_URI'),
+        'tenant_id' => env('MICROSOFT_TENANT_ID'),
+        'members_only' => env('MICROSOFT_MEMBERS_ONLY', true),
+        'allowed_group_id' => env('MICROSOFT_ALLOWED_GROUP_ID'),
+    ],
+
 ];
