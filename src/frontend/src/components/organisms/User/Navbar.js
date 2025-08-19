@@ -26,7 +26,7 @@ function Navbar(props) {
   const [anchorMobileNav, setAnchorMobileNav] = useState(null);
 
   // Use Microsoft authentication
-  const { login: microsoftLogin, logout: microsoftLogout } = useMicrosoftAuth();
+  const { logout: microsoftLogout } = useMicrosoftAuth();
 
   const menus = [
     { label: t('menu.about'), url: '/about' },
@@ -42,14 +42,6 @@ function Navbar(props) {
     setAnchorMobileNav(null);
     if (!url) return;
     navigate(url, { replace: true });
-  };
-
-  const handleLogin = async () => {
-    try {
-      microsoftLogin();
-    } catch (error) {
-      console.error('Login failed:', error);
-    }
   };
 
   const handleLogout = async () => {
@@ -171,11 +163,12 @@ function Navbar(props) {
             </Fragment>
           ) : (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              {/* <Button component={Link} to="/signup" variant="outlined">
+              <Button component={Link} to="/signup" variant="outlined">
                 {t('labels.signup')}
-              </Button> */}
-
-              <Button onClick={handleLogin}>Sign in with Microsoft 365</Button>
+              </Button>
+              <Button component={Link} to="/login" variant="outlined">
+                {t('labels.login')}
+              </Button>
             </Box>
           )}
         </Toolbar>

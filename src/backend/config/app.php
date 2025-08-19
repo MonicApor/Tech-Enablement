@@ -159,7 +159,7 @@ return [
         /*
          * Package Service Providers...
          */
-        L5Swagger\L5SwaggerServiceProvider::class,
+
 
         /*
          * Application Service Providers...
@@ -171,7 +171,7 @@ return [
         App\Providers\RouteServiceProvider::class,
 
         //handles the microsoft authentication
-        \SocialiteProviders\Manager\ServiceProvider::class,
+        //\SocialiteProviders\Manager\ServiceProvider::class, // Not needed for manual JWT validation
     ])->toArray(),
 
     /*

@@ -17,10 +17,8 @@ const loginWithMicrosoft = async () => {
   try {
     await msalInstance.initialize();
 
-    // Login with only basic OIDC scopes (no additional permissions needed)
     const loginResponse = await msalInstance.loginPopup(loginRequest);
 
-    // Send only ID token to backend (no Graph API access needed)
     const backendResponse = await api.post('/auth/microsoft/validate', {
       id_token: loginResponse.idToken,
     });
@@ -67,7 +65,6 @@ const logout = async () => {
   localStorage.clear();
 
   try {
-    // Initialize MSAL instance before using it
     await msalInstance.initialize();
 
     await msalInstance.logoutPopup({

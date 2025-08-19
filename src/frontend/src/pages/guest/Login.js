@@ -55,7 +55,7 @@ function Login() {
             redirect = '/admin';
             break;
           default:
-            redirect = '/';
+            redirect = '/employee';
             break;
         }
         const query = new URLSearchParams(location.search);
@@ -79,7 +79,7 @@ function Login() {
           redirect = '/admin';
           break;
         default:
-          redirect = '/';
+          redirect = '/employee';
           break;
       }
       const query = new URLSearchParams(location.search);

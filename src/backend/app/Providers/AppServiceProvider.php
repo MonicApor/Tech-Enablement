@@ -19,7 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Add frontend URL to config for easy access
         config(['app.frontend_url' => env('FRONTEND_URL', 'http://localhost:3000')]);
     }
 }

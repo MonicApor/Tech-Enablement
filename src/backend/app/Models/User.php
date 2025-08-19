@@ -27,8 +27,6 @@ class User extends Authenticatable
         'microsoft_tenant_id',
         'user_type',
         'role',
-        'department',
-        'job_title',
     ];
 
     /**
