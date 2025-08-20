@@ -160,6 +160,7 @@ return [
          * Package Service Providers...
          */
 
+
         /*
          * Application Service Providers...
          */
@@ -168,6 +169,9 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+
+        //handles the microsoft authentication
+        //\SocialiteProviders\Manager\ServiceProvider::class, // Not needed for manual JWT validation
     ])->toArray(),
 
     /*

@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -20,7 +20,13 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
+        'username',
+        'microsoft_id',
+        'avatar',
+        'email_verified_at',
+        'microsoft_tenant_id',
+        'user_type',
+        'role',
     ];
 
     /**
@@ -42,4 +48,45 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Generate a unique anonymous username
+     */
+    public static function generateAnonymousUsername(): string
+    {
+        $adjectives = [
+            'Anonymous', 'Quiet', 'Silent', 'Hidden', 'Secret', 'Mystery', 'Shadow', 'Phantom',
+            'Invisible', 'Unknown', 'Nameless', 'Faceless', 'Masked', 'Veiled', 'Covert',
+            'Private', 'Discreet', 'Incognito', 'Undercover', 'Ghostly', 'Stealth', 'Whisper'
+        ];
+        
+        $nouns = [
+            'Employee', 'Worker', 'Staff', 'Member', 'Person', 'Individual', 'User', 'Voice',
+            'Contributor', 'Participant', 'Colleague', 'Professional', 'Associate', 'Team',
+            'Source', 'Reporter', 'Witness', 'Observer', 'Insider', 'Agent', 'Contact'
+        ];
+
+        do {
+            $adjective = $adjectives[array_rand($adjectives)];
+            $noun = $nouns[array_rand($nouns)];
+            $number = random_int(1000, 9999);
+            $username = $adjective . $noun . $number;
+        } while (self::where('username', $username)->exists());
+
+        return $username;
+    }
+
+    /**
+     * Boot the model and set up event listeners
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (empty($user->username)) {
+                $user->username = self::generateAnonymousUsername();
+            }
+        });
+    }
 }

@@ -24,12 +24,12 @@ return [
                 'domains' => ['*'],
 
                 // [Dingo router only] Match only routes registered under this version. Wildcards are NOT supported.
-                'versions' => ['v1'],
+                // 'versions' => ['v1'],
             ],
 
             // Include these routes even if they did not match the rules above.
             'include' => [
-                // 'users.index', 'POST /new', '/auth/*'
+                '/auth/*'
             ],
 
             // Exclude these routes even if they matched the rules above.

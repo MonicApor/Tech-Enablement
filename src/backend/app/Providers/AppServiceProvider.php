@@ -19,6 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        config(['app.frontend_url' => env('FRONTEND_URL', 'http://localhost:3000')]);
     }
 }
