@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logout } from 'services/auth';
 import { setProfile } from 'store/slices/profileSlice';
 import { Box } from '@mui/material';
@@ -11,6 +11,7 @@ import api from 'utils/api';
 export default function User() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector((state) => state.profile.user);
 
   const handleLogout = async () => {
@@ -20,22 +21,42 @@ export default function User() {
   };
 
   const fetchProfile = async () => {
-    const user = await api
-      .get('/profile')
-      .then((res) => res.data.data)
-      .catch(() => {
-        if (location.pathname.includes('login')) {
-          return; // prevent too many redirects
-        }
+    try {
+      const response = await api.get('/auth/user');
+      const userData = response.data.user;
+
+      if (userData) {
+        dispatch(setProfile(userData));
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      if (!location.pathname.includes('login')) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
         navigate(`/login?redirect_to=${location.pathname}`);
-      });
-    dispatch(setProfile(user));
+      }
+    }
   };
 
   useEffect(() => {
     const accessToken = localStorage.getItem('access_token');
-    if (accessToken) fetchProfile();
-  }, []);
+    const userData = localStorage.getItem('user');
+
+    if (userData && !user) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        dispatch(setProfile(parsedUser));
+        return;
+      } catch (error) {
+        console.error('Failed to parse user data from localStorage:', error);
+        localStorage.removeItem('user');
+      }
+    }
+
+    if (accessToken && !user && !userData) {
+      fetchProfile();
+    }
+  }, [user, dispatch]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>

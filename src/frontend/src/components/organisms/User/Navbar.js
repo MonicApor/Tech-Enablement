@@ -1,9 +1,9 @@
-import { useMicrosoftAuth } from 'hooks/useMicrosoftAuth';
 import PropTypes from 'prop-types';
 import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { logout } from 'services/auth';
 import MenuIcon from '@mui/icons-material/Menu';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -25,9 +25,6 @@ function Navbar(props) {
   const navigate = useNavigate();
   const [anchorMobileNav, setAnchorMobileNav] = useState(null);
 
-  // Use Microsoft authentication
-  const { logout: microsoftLogout } = useMicrosoftAuth();
-
   const menus = [
     { label: t('menu.about'), url: '/about' },
     { label: t('menu.inquiry'), url: '/inquiry' },
@@ -46,7 +43,7 @@ function Navbar(props) {
 
   const handleLogout = async () => {
     try {
-      await microsoftLogout();
+      await logout();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -56,7 +53,7 @@ function Navbar(props) {
     { label: t('menu.profile'), url: '/profile' },
     {
       label: t('menu.logout'),
-      action: handleLogout, // Use action instead of URL for logout
+      action: handleLogout,
       url: null,
     },
   ];

@@ -14,3 +14,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::get('/', [HomeController::class, '__invoke']);
+
+// protected routes
+Route::middleware('auth:api')->group(function () {
+    Route::get('/profile', [MicrosoftController::class, 'profile']);
+});

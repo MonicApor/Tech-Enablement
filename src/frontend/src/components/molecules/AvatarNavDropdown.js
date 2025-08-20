@@ -32,7 +32,7 @@ function AvatarNavDropdown(props) {
       ? {
           ...props,
           ...{
-            alt: user.full_name,
+            alt: user.name,
             src: user.avatar,
           },
         }
@@ -40,11 +40,18 @@ function AvatarNavDropdown(props) {
           ...props,
           ...{
             sx: {
-              bgcolor: stringToColor(user.full_name),
+              bgcolor: stringToColor(user.name || 'Unknown User'),
               marginLeft: '16px',
               cursor: 'pointer',
             },
-            children: `${user.full_name.split(' ')[0][0]}${user.full_name.split(' ')[1][0]}`,
+            children: user.name
+              ? (() => {
+                  const nameParts = user.name.split(' ');
+                  const firstInitial = nameParts[0]?.[0] || '';
+                  const lastInitial = nameParts[1]?.[0] || '';
+                  return `${firstInitial}${lastInitial}`;
+                })()
+              : '??',
           },
         };
   };

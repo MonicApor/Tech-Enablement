@@ -2,9 +2,18 @@ import axios from 'axios';
 
 const api = axios.create({ baseURL: process.env.REACT_APP_API_URL });
 
-// set access token
-const access_token = localStorage.getItem('access_token');
-if (access_token) api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+api.interceptors.request.use(
+  (config) => {
+    const access_token = localStorage.getItem('access_token');
+    if (access_token) {
+      config.headers.Authorization = `Bearer ${access_token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const handleResponse = (response) => response;
 const handleError = (error) => {
@@ -53,6 +62,13 @@ const handleError = (error) => {
     })
       .then(() => api(originalRequest)) // proceed to original request
       .catch(() => (window.location = '/login')); // force redirect to login page
+  }
+
+  // If 401 and no refresh token (Microsoft auth), clear storage and redirect
+  if (code === 401 && originalRequest.url !== '/oauth/token' && !refresh_token) {
+    localStorage.clear();
+    window.location = '/login';
+    return Promise.reject(error);
   }
 
   return Promise.reject(error);
