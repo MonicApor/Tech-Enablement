@@ -9,6 +9,21 @@ use Illuminate\Support\Facades\Auth;
 
 class MicrosoftController extends Controller
 {
+    /**
+     * Authenticate user with Microsoft MSAL token
+     * 
+     * @OA\Post(
+     *     path="/api/auth/microsoft/validate",
+     *     summary="Validate Microsoft MSAL token",
+     *     tags={"Authentication"},
+     *     security={},
+     *     @OA\RequestBody(required=true, @OA\JsonContent(required={"id_token"}, @OA\Property(property="id_token", type="string"))),
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="access_token", type="string"), @OA\Property(property="refresh_token", type="string", nullable=true), @OA\Property(property="token_type", type="string"), @OA\Property(property="expires_at", type="string"), @OA\Property(property="user", ref="#/components/schemas/User"))),
+     *     @OA\Response(response=400, description="Bad request", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *     @OA\Response(response=403, description="Forbidden", @OA\JsonContent(ref="#/components/schemas/Error")),
+     *     @OA\Response(response=500, description="Server error", @OA\JsonContent(ref="#/components/schemas/Error"))
+     * )
+     */
     public function validateMsalToken(Request $request)
     {
         try {
@@ -54,6 +69,18 @@ class MicrosoftController extends Controller
         }
     }
 
+    /**
+     * Get current authenticated user
+     * 
+     * @OA\Get(
+     *     path="/api/auth/user",
+     *     summary="Get current authenticated user",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="user", ref="#/components/schemas/User"))),
+     *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(type="object", @OA\Property(property="user", type="string", nullable=true)))
+     * )
+     */
     public function user()
     {
         if (Auth::check()) {
@@ -63,6 +90,17 @@ class MicrosoftController extends Controller
         return response()->json(['user' => null], 401);
     }
 
+    /**
+     * Logout current user
+     * 
+     * @OA\Post(
+     *     path="/api/auth/logout",
+     *     summary="Logout current user",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessMessage"))
+     * )
+     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -70,6 +108,22 @@ class MicrosoftController extends Controller
         $request->session()->regenerateToken();
         
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    /**
+     * Get user profile
+     * 
+     * @OA\Get(
+     *     path="/api/auth/profile",
+     *     summary="Get user profile",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="user", ref="#/components/schemas/User")))
+     * )
+     */
+    public function profile()
+    {
+        return response()->json(['user' => Auth::user()]);
     }
 
     private function validateIdToken($idToken)

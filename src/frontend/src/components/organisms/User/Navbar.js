@@ -86,26 +86,28 @@ function Navbar(props) {
 
           {/** Mobile Menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="main menu"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                size="large"
+                aria-label="main menu"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
 
-            <Box
-              onClick={() => navigate('/')}
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                flexGrow: 1,
-                justifyContent: 'center',
-              }}
-            >
-              <img src="/static/images/anon.png" alt={appName} height={48} />
+              <Box
+                onClick={() => navigate('/')}
+                sx={{
+                  display: { xs: 'flex', md: 'none' },
+                  flexGrow: 1,
+                  justifyContent: 'center',
+                }}
+              >
+                <img src="/static/images/anon.png" alt={appName} height={48} />
+              </Box>
             </Box>
 
             <Menu

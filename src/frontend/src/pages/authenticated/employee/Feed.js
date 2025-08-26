@@ -11,14 +11,19 @@ import {
   Stack,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import Post from 'components/molecules/Post';
 
 function Feed() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 3; // Show 3 posts per page
+  const postsPerPage = isMobile ? 2 : 3; // Show fewer posts on mobile
 
   // Mock posts data - replace with actual API call
   const posts = [
@@ -148,9 +153,9 @@ function Feed() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: isMobile ? 1 : 2, mb: 4, px: isMobile ? 1 : 3 }}>
       {/* Search and Filter Section */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: isMobile ? 2 : 4 }}>
         {/* Search Bar */}
         <TextField
           fullWidth
@@ -164,16 +169,26 @@ function Feed() {
               </InputAdornment>
             ),
           }}
-          sx={{ mb: 3 }}
+          sx={{ mb: isMobile ? 2 : 3 }}
         />
 
         {/* Category Filters */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <FilterListIcon color="action" />
-          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-            Filter by:
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: 1,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? 1 : 0 }}>
+            <FilterListIcon color="action" />
+            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+              Filter by:
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
             {categories.map((category) => (
               <Chip
                 key={category.key}

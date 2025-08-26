@@ -15,10 +15,14 @@ import {
   ListItemAvatar,
   ListItemText,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 
 const Rightbar = () => {
-  // Mock trending posts data (replace with actual API call)
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const trendingPosts = [
     {
       id: 1,
@@ -81,9 +85,24 @@ const Rightbar = () => {
   ];
 
   return (
-    <Box flex={2} p={2} sx={{ display: { xs: 'none', lg: 'block' } }}>
-      <Box position="fixed" width={520} sx={{ maxHeight: '100vh', overflowY: 'auto' }}>
-        <Card sx={{ mb: 3, boxShadow: 2 }}>
+    <Box
+      sx={{
+        width: '100%',
+        p: isMobile ? 1 : 0,
+        pt: isMobile ? 0 : 2,
+        pr: isMobile ? 0 : 2,
+        height: isMobile ? 'auto' : '100vh',
+        overflowY: isMobile ? 'visible' : 'auto',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          maxHeight: isMobile ? 'auto' : '100vh',
+          overflowY: isMobile ? 'visible' : 'auto',
+        }}
+      >
+        <Card sx={{ mb: 3, boxShadow: isMobile ? 0 : 2, borderRadius: isMobile ? 0 : 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <TrendingUpIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -146,8 +165,7 @@ const Rightbar = () => {
             </List>
           </CardContent>
         </Card>
-        {/* Recent Activity */}
-        <Card sx={{ boxShadow: 2 }}>
+        <Card sx={{ boxShadow: isMobile ? 0 : 2, borderRadius: isMobile ? 0 : 1 }}>
           <CardContent>
             <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
               Recent Activity
