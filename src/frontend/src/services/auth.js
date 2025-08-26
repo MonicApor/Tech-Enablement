@@ -23,11 +23,12 @@ const loginWithMicrosoft = async () => {
       id_token: loginResponse.idToken,
     });
 
-    const { access_token, refresh_token } = backendResponse.data;
+    const { access_token, refresh_token, user } = backendResponse.data;
     localStorage.setItem('access_token', access_token);
     localStorage.setItem('refresh_token', refresh_token);
+    localStorage.setItem('user', JSON.stringify(user));
 
-    return backendResponse.data.user;
+    return user;
   } catch (error) {
     console.error('Microsoft login failed:', error);
     throw error;

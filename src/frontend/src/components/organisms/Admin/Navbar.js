@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import { Message } from '@mui/icons-material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { IconButton, Toolbar, Typography, styled } from '@mui/material';
 import MuiAppBar from '@mui/material/AppBar';
@@ -69,6 +70,7 @@ function Navbar(props) {
         </Typography>
 
         <LanguageSelect />
+        <Message user={user} darkMode={true} />
 
         <NotificationIcon user={user} darkMode={true} />
 

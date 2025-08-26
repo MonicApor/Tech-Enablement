@@ -50,10 +50,17 @@ const NotificationIcon = (props) => {
 
   const fetchNotifications = async () => {
     setLoading(true);
-    const { data, meta, unread } = await searchNotifications(query).catch(() => setLoading(false));
-    setNotifications(() => [...notifications, ...data]);
-    setUnread(unread);
-    setMeta(meta);
+    try {
+      const { data, meta, unread } = await searchNotifications(query);
+      setNotifications(() => [...notifications, ...data]);
+      setUnread(unread);
+      setMeta(meta);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      setNotifications([]);
+      setUnread(0);
+      setMeta({});
+    }
     setLoading(false);
   };
 

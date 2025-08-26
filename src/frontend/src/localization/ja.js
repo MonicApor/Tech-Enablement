@@ -183,6 +183,14 @@ const ja = {
       styleguide: 'スタイルガイド',
       roles: '役割',
       broadcast: '放送',
+      'create-post': '投稿を作成',
+      'my-posts': 'マイ投稿',
+      notifications: '通知',
+      'my-upvotes': 'マイアップボート',
+      settings: '設定',
+    },
+    sidebar: {
+      employee: '従業員サイドバー',
     },
     table: {
       no_data: 'データなし。',

@@ -2,51 +2,56 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import LayersIcon from '@mui/icons-material/Layers';
-import PeopleIcon from '@mui/icons-material/People';
-import RoomPreferencesIcon from '@mui/icons-material/RoomPreferences';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 
-const links = [
+const employeeLinks = [
   {
     label: 'Dashboard',
-    path: '/admin',
+    path: '/employee',
     icon: <DashboardIcon />,
   },
   {
-    label: 'Users',
-    path: '/admin/users',
-    icon: <PeopleIcon />,
-  },
-  {
-    label: 'Roles',
-    path: '/admin/roles',
-    icon: <RoomPreferencesIcon />,
-  },
-  // DEMO PURPOSES ONLY. REMOVE ON ACTUAL PROJECT
-  {
-    label: 'Broadcast',
-    path: '/admin/broadcast',
+    label: 'Create Post',
+    path: '/employee/create-post',
     icon: <CampaignIcon />,
   },
   {
-    label: 'Integrations',
-    path: '/admin/integrations',
-    icon: <LayersIcon />,
+    label: 'My Posts',
+    path: '/employee/my-posts',
+    icon: <CampaignIcon />,
+  },
+  {
+    label: 'Notifications',
+    path: '/employee/notifications',
+    icon: <NotificationsIcon />,
+  },
+  {
+    label: 'My UpVotes',
+    path: '/employee/my-upvotes',
+    icon: <ThumbUpIcon />,
+  },
+  {
+    label: 'Settings',
+    path: '/employee/settings',
+    icon: <SettingsIcon />,
   },
 ];
 
 function SidebarMenu() {
   const location = useLocation();
   const { t } = useTranslation();
-  const localizeLinks = [...links];
+  const localizeLinks = [...employeeLinks];
 
   // add localization to menu items
   localizeLinks.map((link) => {
-    link.label = t(`menu.${link.path.replace('/admin/', '')}`);
+    const key = link.path === '/employee' ? 'dashboard' : link.path.replace('/employee/', '');
+    link.label = t(`menu.${key}`);
     return link;
   });
 
@@ -69,4 +74,4 @@ function SidebarMenu() {
   );
 }
 
-export { links, SidebarMenu };
+export { SidebarMenu };

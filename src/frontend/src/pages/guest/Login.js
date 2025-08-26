@@ -2,10 +2,11 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login, loginWithMicrosoft } from 'services/auth';
+import { setProfile } from 'store/slices/profileSlice';
 import * as yup from 'yup';
 import { Box, Card, Container, Divider, Grid, Link, Typography } from '@mui/material';
 import Button from 'components/atoms/Button';
@@ -16,6 +17,7 @@ import PageTitle from 'components/atoms/PageTitle';
 function Login() {
   const { t } = useTranslation();
   const location = useLocation();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.profile.user);
 
   // form validation
@@ -37,8 +39,8 @@ function Login() {
   useEffect(() => {
     if (user) {
       const { role } = user;
-      const redirect = role === 'System Admin' ? '/admin/' : '/';
-      // use native redirect to avoid ui glitch on state change
+      const redirect = role === 'System Admin' ? '/admin/' : '/employee';
+      // use native redirect to avoid ui  on state change
       window.location = redirect;
     }
   }, [user]);
@@ -71,6 +73,8 @@ function Login() {
   const handleMicrosoftLogin = async () => {
     try {
       const user = await loginWithMicrosoft();
+      dispatch(setProfile(user));
+
       const { role } = user;
       let redirect = '';
 

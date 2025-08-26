@@ -27,6 +27,8 @@ class User extends Authenticatable
         'microsoft_tenant_id',
         'user_type',
         'role',
+        'immediate_supervisor',
+        'hire_date',
     ];
 
     /**
@@ -47,6 +49,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'hire_date' => 'date',
     ];
 
     /**

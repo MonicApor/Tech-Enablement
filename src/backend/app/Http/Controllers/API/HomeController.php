@@ -9,8 +9,14 @@ class HomeController extends Controller
     /**
      * Default page for API.
      *
-     * @return Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/api",
+     *     summary="API Welcome Page",
+     *     tags={"API"},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="version", type="string"), @OA\Property(property="status", type="string"), @OA\Property(property="timestamp", type="string"), @OA\Property(property="endpoints", type="object")))
+     * )
      */
+    
     public function __invoke()
     {
         return response()->json([

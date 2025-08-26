@@ -14,3 +14,10 @@ RUN /configure-opcache.sh
 
 # Update Git directory permission
 RUN git config --global --add safe.directory /var/www/backend
+
+# Copy and setup Laravel startup script
+COPY ./docker/php/scripts/start-laravel.sh /start-laravel.sh
+RUN chmod +x /start-laravel.sh
+
+# Set the startup script as the default command
+CMD ["/start-laravel.sh"]

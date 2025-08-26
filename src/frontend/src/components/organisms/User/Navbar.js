@@ -1,9 +1,9 @@
-import { useMicrosoftAuth } from 'hooks/useMicrosoftAuth';
 import PropTypes from 'prop-types';
 import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { logout } from 'services/auth';
 import MenuIcon from '@mui/icons-material/Menu';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -25,9 +25,6 @@ function Navbar(props) {
   const navigate = useNavigate();
   const [anchorMobileNav, setAnchorMobileNav] = useState(null);
 
-  // Use Microsoft authentication
-  const { logout: microsoftLogout } = useMicrosoftAuth();
-
   const menus = [
     { label: t('menu.about'), url: '/about' },
     { label: t('menu.inquiry'), url: '/inquiry' },
@@ -46,7 +43,7 @@ function Navbar(props) {
 
   const handleLogout = async () => {
     try {
-      await microsoftLogout();
+      await logout();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -56,7 +53,7 @@ function Navbar(props) {
     { label: t('menu.profile'), url: '/profile' },
     {
       label: t('menu.logout'),
-      action: handleLogout, // Use action instead of URL for logout
+      action: handleLogout,
       url: null,
     },
   ];
@@ -89,26 +86,28 @@ function Navbar(props) {
 
           {/** Mobile Menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="main menu"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
-              color="inherit"
-            >
-              <MenuIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                size="large"
+                aria-label="main menu"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleOpenNavMenu}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
 
-            <Box
-              onClick={() => navigate('/')}
-              sx={{
-                display: { xs: 'flex', md: 'none' },
-                flexGrow: 1,
-                justifyContent: 'center',
-              }}
-            >
-              <img src="/static/images/anon.png" alt={appName} height={48} />
+              <Box
+                onClick={() => navigate('/')}
+                sx={{
+                  display: { xs: 'flex', md: 'none' },
+                  flexGrow: 1,
+                  justifyContent: 'center',
+                }}
+              >
+                <img src="/static/images/anon.png" alt={appName} height={48} />
+              </Box>
             </Box>
 
             <Menu

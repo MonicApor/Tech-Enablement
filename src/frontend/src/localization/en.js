@@ -184,6 +184,14 @@ const en = {
       styleguide: 'Styleguide',
       roles: 'Roles',
       broadcast: 'Broadcast',
+      'create-post': 'Create Post',
+      'my-posts': 'My Posts',
+      notifications: 'Notifications',
+      'my-upvotes': 'My UpVotes',
+      settings: 'Settings',
+    },
+    sidebar: {
+      employee: 'Employee Sidebar',
     },
     table: {
       no_data: 'No data.',
