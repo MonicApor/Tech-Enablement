@@ -1,30 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import SearchIcon from '@mui/icons-material/Search';
-import {
-  Box,
-  Button,
-  Chip,
-  Container,
-  InputAdornment,
-  Pagination,
-  Stack,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import React from 'react';
+import { Message } from '@mui/icons-material';
+import { Box, Button, Card, CardContent, CardHeader, Chip, TextField } from '@mui/material';
 import Post from 'components/molecules/Post';
 
 function Feed() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = isMobile ? 2 : 3; // Show fewer posts on mobile
-
   // Mock posts data - replace with actual API call
   const posts = [
     {
@@ -34,7 +13,7 @@ function Feed() {
         'I think the new office policy regarding remote work is great, but I have some concerns about the implementation timeline. Has anyone else noticed that the transition period might be too short?',
       author: 'Anonymous Employee',
       authorInitial: 'A',
-      category: 'Policy',
+      category: 'Policy Feedback',
       upvotes: 127,
       downvotes: 12,
       views: 456,
@@ -68,7 +47,7 @@ function Feed() {
         'The current IT support process takes too long. I submitted a ticket 3 days ago and still no response. Anyone else experiencing this? We need a better system.',
       author: 'Anonymous Employee',
       authorInitial: 'A',
-      category: 'IT',
+      category: 'Technology',
       upvotes: 67,
       downvotes: 8,
       views: 189,
@@ -85,170 +64,58 @@ function Feed() {
         'The new wellness program is amazing! I love the gym membership reimbursement and mental health days. Has anyone tried the meditation sessions?',
       author: 'Anonymous Employee',
       authorInitial: 'A',
-      category: 'Wellness',
+      category: 'Workplace',
       upvotes: 156,
       downvotes: 3,
       views: 567,
       comments: 31,
       isUpvoted: false,
       isDownvoted: false,
-      createdAt: '8 hours ago',
+      createdAt: '1 day ago',
       tags: ['wellness', 'mental-health', 'gym'],
     },
-    {
-      id: 5,
-      title: 'Workplace Communication Tools',
-      content:
-        "We're considering switching from Slack to Microsoft Teams. What are your thoughts? I'm concerned about the learning curve and integration with our existing tools.",
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'Workplace',
-      upvotes: 43,
-      downvotes: 15,
-      views: 123,
-      comments: 8,
-      isUpvoted: false,
-      isDownvoted: true,
-      createdAt: '12 hours ago',
-      tags: ['communication', 'tools', 'microsoft-teams'],
-    },
   ];
-
-  const categories = [
-    { key: 'all', label: 'All Posts', color: 'primary' },
-    { key: 'policy', label: 'Policy', color: 'secondary' },
-    { key: 'workplace', label: 'Workplace', color: 'success' },
-    { key: 'events', label: 'Events', color: 'warning' },
-    { key: 'it', label: 'IT', color: 'info' },
-    { key: 'wellness', label: 'Wellness', color: 'error' },
-  ];
-
-  // Filter posts based on search query and category
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesCategory =
-      selectedCategory === 'all' || post.category.toLowerCase() === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
-
-  // Reset to page 1 when search or filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
-
-  const handlePageChange = (event, page) => {
-    setCurrentPage(page);
-  };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: isMobile ? 1 : 2, mb: 4, px: isMobile ? 1 : 3 }}>
-      {/* Search and Filter Section */}
-      <Box sx={{ mb: isMobile ? 2 : 4 }}>
-        {/* Search Bar */}
-        <TextField
-          fullWidth
-          placeholder="Search posts, topics, or tags..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mb: isMobile ? 2 : 3 }}
-        />
-
-        {/* Category Filters */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: 1,
-            mb: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? 1 : 0 }}>
-            <FilterListIcon color="action" />
-            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-              Filter by:
-            </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Create Post */}
+      <Card>
+        <CardHeader title="Share Anonymous Feedback" />
+        <CardContent>
+          <TextField
+            fullWidth
+            placeholder="Enter your feedback title..."
+            variant="outlined"
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="What's on your mind? Your feedback is completely anonymous..."
+            variant="outlined"
+            sx={{ mb: 2 }}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip label="Policy" variant="outlined" size="small" />
+              <Chip label="Workplace" variant="outlined" size="small" />
+              <Chip label="Technology" variant="outlined" size="small" />
+            </Box>
+            <Button variant="contained" startIcon={<Message />}>
+              Post Feedback
+            </Button>
           </Box>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
-            {categories.map((category) => (
-              <Chip
-                key={category.key}
-                label={category.label}
-                color={selectedCategory === category.key ? category.color : 'default'}
-                variant={selectedCategory === category.key ? 'filled' : 'outlined'}
-                onClick={() => setSelectedCategory(category.key)}
-                size="small"
-              />
-            ))}
-          </Stack>
-        </Box>
-
-        {/* Results Count */}
-        <Typography variant="body2" color="text.secondary">
-          Showing {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} of{' '}
-          {filteredPosts.length} posts
-        </Typography>
-      </Box>
+        </CardContent>
+      </Card>
 
       {/* Posts Feed */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {currentPosts.length > 0 ? (
-          currentPosts.map((post) => <Post key={post.id} post={post} />)
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-              No posts found
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Try adjusting your search terms or category filter
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-              }}
-            >
-              Clear Filters
-            </Button>
-          </Box>
-        )}
+        {posts.map((post) => (
+          <Post key={post.id} post={post} />
+        ))}
       </Box>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            color="primary"
-            size="large"
-            showFirstButton
-            showLastButton
-          />
-        </Box>
-      )}
-    </Container>
+    </Box>
   );
 }
 

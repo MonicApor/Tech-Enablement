@@ -18,4 +18,20 @@ class ActivationToken extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    /**
+     * Mark the token as used by setting revoked to true
+     */
+    public function markAsUsed()
+    {
+        $this->update(['revoked' => true]);
+    }
+
+    /**
+     * Check if the token is valid (not revoked)
+     */
+    public function isValid()
+    {
+        return !$this->revoked;
+    }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
 use Exception;
 use App\Http\Resources\NewUserResource;
+use App\Models\ActivationToken;
 
 /**
  * @OA\Tag(
@@ -92,9 +93,8 @@ class AuthController extends Controller
 
         try {
             // Find the activation token
-            $activationToken = \App\Models\ActivationToken::where('token', $request->token)
-                ->where('expires_at', '>', now())
-                ->whereNull('used_at')
+            $activationToken = ActivationToken::where('token', $request->token)
+                ->where('revoked', false)
                 ->first();
 
             if (!$activationToken) {
@@ -122,7 +122,7 @@ class AuthController extends Controller
             ], 200);
 
         } catch (Exception $e) {
-            return response()->json(['message' => 'Failed to activate account'], 500);
+            return response()->json(['message' => 'Failed to activate account: ' . $e->getMessage()], 500);
         }
     }
 

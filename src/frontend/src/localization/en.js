@@ -47,12 +47,19 @@ const en = {
       newNotification: 'You have a new notification.',
     },
     pages: {
+      login: {
+        no_account: "Don't have an account?",
+        sign_up_here: 'Sign up here',
+      },
       signup: {
         agree_to_terms: 'By clicking Register, you agree that you have read and agree to the',
         signup_complete:
           'A confirmation email has been sent to your inbox. Click the link to complete the registration process.',
         terms_conditions: 'Terms & Conditions',
         create_free_account: 'Create your Free Account',
+        signup_description: 'Join thousands of employees sharing feedback anonymously',
+        already_have_account: 'Already have an account?',
+        sign_in_here: 'Sign in here',
       },
       forgot_password: {
         sub_heading: 'To recover your account, please enter your email address below.',
@@ -82,7 +89,7 @@ const en = {
         activated: 'Your Account has been activated. You can now login to your account!',
       },
       dashboard: {
-        main_heading: 'Welcome to React Base Template!',
+        main_heading: 'Anonymous Employee Feedback!',
         sub_heading: 'A lightweight boilerplate about the development of a React project.',
         new_users: 'New Users',
         total_sales: 'Total Sales',
@@ -111,28 +118,32 @@ const en = {
         failed_message: 'The update failed.',
       },
       landing: {
-        main_heading: 'Welcome to React Base Template!',
-        sub_heading: 'A lightweight boilerplate about the development of a React project.',
-        why_heading: 'Why use Base Template?',
+        main_heading: 'Anonymous Employee Feedback!',
+        sub_heading:
+          'Create a culture of open communication where every voice matters. Share feedback safely and anonymously',
+        why_heading: 'Why Choose Anon?',
         docker: {
-          heading: 'Flexible Environment',
+          heading: 'Complete Anonymity',
           description:
-            'Eliminate the "it works on my machine" problem once and for all. Spend less time setting up environments, debugging environment-specific issues, and a more portable and easy-to-set-up codebase.',
+            'Your identity is protected. Share feedback without fear of retaliation or judgment.',
         },
         react: {
-          heading: 'Fast & Intuitive UI',
+          heading: 'Real-time Feedback',
           description:
-            'ReactJS is extremely intuitive to work with and provides interactivity to the layout of any UI. It is composable so we can utilize these components and integrate them into one place. Hence the code becomes a lot more maintainable and flexible.',
+            'Post and respond to feedback instantly. Create meaningful workplace conversations.',
         },
         laravel: {
-          heading: 'Powerful API',
+          heading: 'Actionable Insights',
           description:
-            "Utilizing Laravel's API feature for easy backend API development. It's quick, simple with easy 3rd Party integrations and libraries.",
+            'Transform anonymous feedback into actionable improvements for your organization.',
         },
         our_customers_heading: 'Our Clients',
         reviews_heading: 'What our clients say',
         see_all_reviews: 'See All Reviews',
-        call_to_action: 'Accelerate your application development today!',
+        call_to_action: 'Ready to Transform Your Workplace?',
+        call_to_action_description:
+          'Join thousands of organizations creating better workplace cultures through anonymous feedback.',
+        call_to_action_button: 'Start Free Today',
       },
       about: {
         main_heading: 'Our Story',
@@ -143,7 +154,7 @@ const en = {
           'Thoughtfulness, originality, and attention to detail are the basis for every product we design, build, and market.',
         our_mission: 'Our Mission',
         mission_description:
-          'Our mission is to spread the excellence of technology with quality service and products valuing the business trend and proposition with people centric culture and behavior.',
+          'Our mission is to spread the excellence of technology with quality service and products valuing the business trend and proposition with people centric culture and behavior. We are a team of passionate individuals who are dedicated to making the world a better place.',
         our_activities: 'Our Activities',
         activities_description: 'Never get so busy making a living that you forget to make a life.',
       },
@@ -189,6 +200,7 @@ const en = {
       notifications: 'Notifications',
       'my-upvotes': 'My UpVotes',
       settings: 'Settings',
+      quick_links: 'Quick Links',
     },
     sidebar: {
       employee: 'Employee Sidebar',

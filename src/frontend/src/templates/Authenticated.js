@@ -43,21 +43,28 @@ function Authenticated() {
     if (user) {
       const { role } = user;
 
-      if (location.pathname.includes('admin') && role !== 'System Admin') {
-        setLayout(<Unauthorized />);
-        return;
-      }
-
-      switch (role) {
-        case 'System Admin':
-          setLayout(<Admin />);
-          break;
-        case 'Employee':
-          setLayout(<Employee />);
-          break;
-        default:
-          setLayout(<User />);
-          break;
+      // Route-based template selection
+      if (location.pathname.includes('/admin')) {
+        if (role !== 'System Admin') {
+          setLayout(<Unauthorized />);
+          return;
+        }
+        setLayout(<Admin />);
+      } else if (location.pathname.includes('/employee')) {
+        setLayout(<Employee />);
+      } else {
+        // Default template based on role
+        switch (role) {
+          case 'System Admin':
+            setLayout(<Admin />);
+            break;
+          case 'Employee':
+            setLayout(<Employee />);
+            break;
+          default:
+            setLayout(<User />);
+            break;
+        }
       }
     }
   }, [user, location.pathname, dispatch]);

@@ -48,12 +48,12 @@ const login = async ({ ...props }) => {
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('refresh_token', refresh_token);
 
-      return await api.get('/profile').then(({ data }) => data.data);
+      return await api.get('/auth/me').then(({ data }) => data.user);
     });
 };
 
 const getCurrentUser = async () => {
-  return await api.get('/auth/user').then(({ data }) => data.user);
+  return await api.get('/auth/me').then(({ data }) => data.user);
 };
 
 const logout = async () => {

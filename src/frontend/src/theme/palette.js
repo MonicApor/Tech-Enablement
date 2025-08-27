@@ -4,12 +4,20 @@
  */
 const palette = {
   primary: {
-    main: '#058ED9',
-    contrastText: '#fff',
+    main: '#1e3a8a',
+    contrastText: '#ffffff',
   },
   secondary: {
-    main: '#D14081',
-    contrastText: '#fff',
+    main: '#6366f1',
+    contrastText: '#ffffff',
+  },
+  background: {
+    default: '#ffffff',
+    paper: '#f8fafc',
+  },
+  text: {
+    primary: '#1f2937',
+    secondary: '#4b5563',
   },
   success: {
     main: '#70A37F',

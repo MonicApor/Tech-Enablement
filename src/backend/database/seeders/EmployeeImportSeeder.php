@@ -15,7 +15,7 @@ class EmployeeImportSeeder extends Seeder
     public function run(): void
     {
         $employees = [
-            ['Last Name' => 'Nishida', 'Middle Name' => '-', 'First Name' => 'Toshihiko', 'Immediate Supervisor' => 'Toshihiko Nishida', 'Position' => 'Management', 'Hire Date' => '10/01/2022', 'Email' => 'nishida.t@sprobe.com'],
+            ['Last Name' => 'Nishida', 'Middle Name' => '-', 'First Name' => 'Toshihiko', 'Immediate Supervisor' => 'Toshihiko Nishida', 'Position' => 'System Admin', 'Hire Date' => '10/01/2022', 'Email' => 'nishida.t@sprobe.com'],
             ['Last Name' => 'Pejana', 'Middle Name' => 'Villanueva', 'First Name' => 'Marie Claire Yaxien', 'Immediate Supervisor' => 'Louie Gabutin', 'Position' => 'Batch Monitoring', 'Hire Date' => '10/07/2019', 'Email' => 'pejana.mc@sprobe.com'],
             ['Last Name' => 'Otadoy', 'Middle Name' => 'Geotoro', 'First Name' => 'Glenn Vincent', 'Immediate Supervisor' => 'Louie Gabutin', 'Position' => 'Batch Monitoring', 'Hire Date' => '11/04/2019', 'Email' => 'otadoy.gv@sprobe.com'],
             ['Last Name' => 'Resma', 'Middle Name' => 'Paduga', 'First Name' => 'Stella Maris', 'Immediate Supervisor' => 'Louie Gabutin', 'Position' => 'Batch Monitoring', 'Hire Date' => '11/04/2019', 'Email' => 'paduga.sm@sprobe.com'],

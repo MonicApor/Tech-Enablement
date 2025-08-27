@@ -53,7 +53,7 @@ function Activate() {
     setLoading(true);
 
     return await api
-      .post('/activate', { token, password, password_confirmation })
+      .post('/auth/activate', { token, password, password_confirmation })
       .then(() => {
         setLoading(false);
         toast(t('pages.activate.activated'), {
@@ -83,7 +83,7 @@ function Activate() {
   return (
     <>
       {valid && (
-        <Container maxWidth="xs" sx={{ pt: 8 }}>
+        <Container maxWidth="sm" sx={{ pt: 8 }}>
           <PageTitle title={t('pages.activate.heading')} subTitle={t('pages.activate.subtitle')} />
 
           <Card sx={{ p: 4 }}>
@@ -106,7 +106,7 @@ function Activate() {
                     error={errors && errors.password_confirmation ? true : false}
                     helperText={errors ? errors?.password_confirmation?.message : null}
                     fullWidth
-                    label={t('labels.confirm_new_password')}
+                    label={t('labelsa.confirm_new_password')}
                     name="password_confirmation"
                   />
                 </Grid>

@@ -20,6 +20,11 @@ const employee = [
     component: 'pages/authenticated/employee/Posts',
     auth: true,
   },
+  {
+    path: '/employee/chats',
+    component: 'pages/authenticated/employee/Chats',
+    auth: true,
+  },
 ];
 
 export default employee;

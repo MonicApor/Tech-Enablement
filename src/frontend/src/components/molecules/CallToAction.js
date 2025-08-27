@@ -1,28 +1,35 @@
 import { useTranslation } from 'react-i18next';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import ButtonRound from 'components/atoms/ButtonRound';
-import Heading from 'components/atoms/Heading';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Container, Typography } from '@mui/material';
 
 function CallToAction() {
   const { t } = useTranslation();
-
+  const navigate = useNavigate();
   return (
-    <Box sx={(theme) => ({ display: 'flex', mb: -8, background: theme.palette.primary.main })}>
-      <Container>
-        <Grid container spacing={4} sx={{ width: '100%', alignItems: 'center', py: 6 }}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Heading variant="h4" sx={{ mb: 0, color: 'white' }}>
-              {t('pages.landing.call_to_action')}
-            </Heading>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }} justify="center">
-            <ButtonRound align="center" sx={{ display: 'block', m: '0 auto' }}>
-              Get Started
-            </ButtonRound>
-          </Grid>
-        </Grid>
+    <Box
+      sx={{ backgroundColor: 'primary.main', color: 'primary.contrastText', py: { xs: 6, md: 8 } }}
+    >
+      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+        <Typography variant="h3" component="h2" gutterBottom>
+          {t('pages.landing.call_to_action')}
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 4, opacity: 0.9 }}>
+          {t('pages.landing.call_to_action_description')}
+        </Typography>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={() => navigate('/signup')}
+          sx={{
+            backgroundColor: 'secondary.main',
+            '&:hover': { backgroundColor: 'secondary.dark' },
+            px: 4,
+            py: 1.5,
+            fontSize: '1.1rem',
+          }}
+        >
+          {t('pages.landing.call_to_action_button')}
+        </Button>
       </Container>
     </Box>
   );

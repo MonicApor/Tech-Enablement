@@ -6,7 +6,7 @@ const pxToRem = (val) => `${val / 16}rem`;
  * @see https://mui.com/material-ui/customization/typography/
  */
 const typography = {
-  fontFamily: '"Noto Sans JP", sans-serif',
+  fontFamily: '"DM Sans", "Roboto", "Helvetica", "Arial", sans-serif',
   h1: {
     fontSize: pxToRem(48),
     fontWeight: 700,

@@ -60,14 +60,13 @@ export default function User() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <Navbar open={open} onLogout={() => handleLogout()} user={user} />
+      <Navbar onLogout={() => handleLogout()} user={user} />
 
       <Box
         component="main"
         sx={{
           backgroundColor: (theme) =>
             theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900],
-          pb: 8,
           minHeight: 'calc(100vh - 313px)',
         }}
       >

@@ -123,6 +123,8 @@ services:
       - REACT_APP_AZURE_CLIENT_ID=${REACT_APP_AZURE_CLIENT_ID}
       - REACT_APP_AZURE_TENANT_ID=${REACT_APP_AZURE_TENANT_ID}
       - REACT_APP_API_URL=http://localhost:8000/api
+      - REACT_APP_CLIENT_ID=2
+      - REACT_APP_CLIENT_SECRET=tPbVAuzkj0jwVBGwqGHKW94HiuTylWp7vNTCCCe3
     ports:
       - "3000:3000"
 
@@ -159,6 +161,10 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     container_name: ${PROJECT_NAME}_mailhog
+    environment:
+      - MH_STORAGE=memory
+      - MH_HOSTNAME=mailhog
+      - MH_DISABLE_CLICK_TRACKING=true
     ports:
       - 1025:1025
       - 8025:8025

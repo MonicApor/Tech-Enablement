@@ -30,18 +30,23 @@ class InviteUserMail extends Mailable
     public function __construct(User $user, $token)
     {
         $this->user = $user;
-        $this->url = env('FRONTEND_URL') . '/auth/activate?token=' . $token;
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $this->url = $frontendUrl . '/auth/activate?token=' . $token;
         
     }
 
     public function build()
     {
-        return $this->view('emails.invite-user')
+        return $this->view('mail.users.signup')
             ->subject('Invite User Mail')
             ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
             ->with([
                 'user' => $this->user,
                 'url' => $this->url,
-            ]);
+            ])
+            ->withSwiftMessage(function ($message) {
+                // Prevent MailHog from modifying URLs
+                $message->getHeaders()->addTextHeader('X-MailHog-Disable-Click-Tracking', 'true');
+            });
     }
 }

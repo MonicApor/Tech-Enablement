@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+  Chat as ChatIcon,
   Comment,
   Flag,
   MoreVert,
@@ -26,15 +28,19 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Menu,
+  MenuItem,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
 
 const Post = ({ post }) => {
+  const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const mockPost = post || {
     id: 1,
@@ -121,6 +127,26 @@ const Post = ({ post }) => {
     console.log('Reporting post:', mockPost.id);
   };
 
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    // TODO: Implement edit functionality
+    console.log('Editing post:', mockPost.id);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
+    // TODO: Implement delete functionality
+    console.log('Deleting post:', mockPost.id);
+    handleMenuClose();
+  };
+
   return (
     <Card sx={{ mb: 3, boxShadow: 2 }}>
       <CardHeader
@@ -131,19 +157,42 @@ const Post = ({ post }) => {
         }
         action={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip label={mockPost.category} size="small" color="primary" variant="outlined" />
+            <Typography variant="caption" color="text.secondary">
+              {mockPost.createdAt}
+            </Typography>
             <IconButton aria-label="report" onClick={handleReport}>
               <Flag fontSize="small" />
             </IconButton>
-            <IconButton aria-label="more options">
+            <IconButton aria-label="more options" onClick={handleMenuOpen}>
               <MoreVert />
             </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem onClick={handleEdit}>Edit</MenuItem>
+              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                Delete
+              </MenuItem>
+            </Menu>
           </Box>
         }
         title={
-          <Typography variant="h6" fontWeight={600}>
-            {mockPost.title}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Typography variant="h6" fontWeight={600}>
+              {mockPost.title}
+            </Typography>
+            <Chip label={mockPost.category} size="small" color="primary" variant="outlined" />
+          </Box>
         }
         subheader={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
@@ -199,6 +248,21 @@ const Post = ({ post }) => {
               <Share fontSize="small" />
             </IconButton>
           </Tooltip>
+
+          <Button
+            variant="outline"
+            size="small"
+            startIcon={<ChatIcon />}
+            onClick={() =>
+              navigate(
+                `/employee/chats?postId=${mockPost.id}&postTitle=${encodeURIComponent(
+                  mockPost.title
+                )}`
+              )
+            }
+          >
+            Chat
+          </Button>
         </Box>
       </CardActions>
 

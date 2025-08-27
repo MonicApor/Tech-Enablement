@@ -44,10 +44,14 @@ class TokenService
             'password_reset' => $this->passwordResetToken
         ];
 
-        $token = $models[$data['type']]->where('token', $data['token'])->firstOrFail();
+        $token = $models[$data['type']]->where('token', $data['token'])->first();
         
         if (!$token) {
             throw new Exception('Invalid or expired token');
+        }
+
+        if ($data['type'] === 'activation' && $token->revoked) {
+            throw new Exception('Token has already been used');
         }
 
         return [

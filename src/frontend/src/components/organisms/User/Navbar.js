@@ -7,7 +7,6 @@ import { logout } from 'services/auth';
 import MenuIcon from '@mui/icons-material/Menu';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -61,117 +60,118 @@ function Navbar(props) {
   return (
     <AppBar
       position="static"
-      color="transparent"
       elevation={0}
-      sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+      sx={{
+        backgroundColor: 'background.default',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
     >
-      <Container maxWidth="lg">
-        <Toolbar sx={{ flexWrap: 'wrap' }} disableGutters>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex', alignItems: 'center' } }}>
-            <Link to="/">
-              <img src="/static/images/anon.png" alt={appName} height={48} />
-            </Link>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ ml: 2, color: 'darkblue', fontWeight: 'bold' }}
+      <Toolbar sx={{ flexWrap: 'wrap', px: 4 }} disableGutters>
+        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex', alignItems: 'center' } }}>
+          <Link to="/">
+            <img src="/static/images/anon.png" alt={appName} height={48} />
+          </Link>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ ml: 2, color: 'darkblue', fontWeight: 'bold' }}
+          >
+            ANON
+          </Typography>
+        </Box>
+
+        <Box component="nav" sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <MenuLinks items={menus} />
+        </Box>
+
+        {/** Mobile Menu */}
+        <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              size="large"
+              aria-label="main menu"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleOpenNavMenu}
+              color="inherit"
             >
-              ANON
-            </Typography>
-          </Box>
+              <MenuIcon />
+            </IconButton>
 
-          <Box component="nav" sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <MenuLinks items={menus} />
-          </Box>
-
-          {/** Mobile Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                size="large"
-                aria-label="main menu"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-              >
-                <MenuIcon />
-              </IconButton>
-
-              <Box
-                onClick={() => navigate('/')}
-                sx={{
-                  display: { xs: 'flex', md: 'none' },
-                  flexGrow: 1,
-                  justifyContent: 'center',
-                }}
-              >
-                <img src="/static/images/anon.png" alt={appName} height={48} />
-              </Box>
-            </Box>
-
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorMobileNav}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              open={Boolean(anchorMobileNav)}
-              onClose={() => handleCloseNavMenu(null)}
+            <Box
+              onClick={() => navigate('/')}
               sx={{
-                display: { xs: 'block', md: 'none' },
-              }}
-              MenuListProps={{
-                style: {
-                  width: 200,
-                },
+                display: { xs: 'flex', md: 'none' },
+                flexGrow: 1,
+                justifyContent: 'center',
               }}
             >
-              {menus.map((menu, key) => (
-                <MenuItem key={key} onClick={() => handleCloseNavMenu(menu.url)}>
-                  <Typography textAlign="center">{menu.label}</Typography>
-                </MenuItem>
-              ))}
-
-              {!user && (
-                <Box>
-                  <MenuItem onClick={() => handleCloseNavMenu('/signup')}>
-                    <Typography textAlign="center">{t('labels.signup')}</Typography>
-                  </MenuItem>
-
-                  <MenuItem onClick={() => handleCloseNavMenu('/login')}>
-                    <Typography textAlign="center">{t('labels.login')}</Typography>
-                  </MenuItem>
-                </Box>
-              )}
-            </Menu>
+              <img src="/static/images/anon.png" alt={appName} height={48} />
+            </Box>
           </Box>
 
-          <LanguageSelect sx={{ ml: 1 }} />
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorMobileNav}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}
+            open={Boolean(anchorMobileNav)}
+            onClose={() => handleCloseNavMenu(null)}
+            sx={{
+              display: { xs: 'block', md: 'none' },
+            }}
+            MenuListProps={{
+              style: {
+                width: 200,
+              },
+            }}
+          >
+            {menus.map((menu, key) => (
+              <MenuItem key={key} onClick={() => handleCloseNavMenu(menu.url)}>
+                <Typography textAlign="center">{menu.label}</Typography>
+              </MenuItem>
+            ))}
 
-          {user ? (
-            <Fragment>
-              <NotificationIcon user={user} />
-              <AvatarNavDropdown user={user} links={links} />
-            </Fragment>
-          ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <Button component={Link} to="/signup" variant="outlined">
-                {t('labels.signup')}
-              </Button>
-              <Button component={Link} to="/login" variant="outlined">
-                {t('labels.login')}
-              </Button>
-            </Box>
-          )}
-        </Toolbar>
-      </Container>
+            {!user && (
+              <Box>
+                <MenuItem onClick={() => handleCloseNavMenu('/signup')}>
+                  <Typography textAlign="center">{t('labels.signup')}</Typography>
+                </MenuItem>
+
+                <MenuItem onClick={() => handleCloseNavMenu('/login')}>
+                  <Typography textAlign="center">{t('labels.login')}</Typography>
+                </MenuItem>
+              </Box>
+            )}
+          </Menu>
+        </Box>
+
+        <LanguageSelect sx={{ ml: 1 }} />
+
+        {user ? (
+          <Fragment>
+            <NotificationIcon user={user} />
+            <AvatarNavDropdown user={user} links={links} />
+          </Fragment>
+        ) : (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+            <Button component={Link} to="/signup" variant="outlined">
+              {t('labels.signup')}
+            </Button>
+            <Button component={Link} to="/login" variant="contained">
+              {t('labels.login')}
+            </Button>
+          </Box>
+        )}
+      </Toolbar>
     </AppBar>
   );
 }
