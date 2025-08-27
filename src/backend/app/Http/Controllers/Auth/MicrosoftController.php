@@ -90,25 +90,7 @@ class MicrosoftController extends Controller
         return response()->json(['user' => null], 401);
     }
 
-    /**
-     * Logout current user
-     * 
-     * @OA\Post(
-     *     path="/api/auth/logout",
-     *     summary="Logout current user",
-     *     tags={"Authentication"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessMessage"))
-     * )
-     */
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        
-        return response()->json(['message' => 'Logged out successfully']);
-    }
+
 
     /**
      * Get user profile

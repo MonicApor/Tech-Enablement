@@ -71,13 +71,11 @@ function Activate() {
   };
 
   const verifyToken = async () => {
-    const query = new URLSearchParams({ type: 'activation', token }).toString();
-
     return await api
-      .get(`/token/verify?${query}`)
+      .post(`/auth/verify-token`, { token, type: 'activation' })
       .then(({ data }) => {
-        const { verified } = data.data;
-        setValid(verified);
+        const { valid } = data;
+        setValid(valid);
       })
       .catch(() => navigate('/page-not-found'));
   };
