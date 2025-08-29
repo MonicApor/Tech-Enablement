@@ -1,254 +1,201 @@
-import React, { useEffect, useState } from 'react';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import SearchIcon from '@mui/icons-material/Search';
+import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useCallback, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useCategories } from 'services/categories.service';
+import { useCreatePost, usePosts } from 'services/post.service';
+import { defaultValuesPost, postSchema } from 'validations/post';
+import { Message } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
+  CardContent,
+  CardHeader,
   Chip,
-  Container,
-  InputAdornment,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Pagination,
-  Stack,
+  Select,
   TextField,
-  Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import Post from 'components/molecules/Post';
 
 function Feed() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [searchDisplay, setSearchDisplay] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [sort, setSort] = useState('desc');
+  const { categories } = useCategories();
+  const { posts, meta, isLoading: postsLoading } = usePosts(page, search, selectedCategory, sort);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = isMobile ? 2 : 3; // Show fewer posts on mobile
+  const handlePageChange = (event, value) => {
+    event.preventDefault();
+    setPage(value);
+  };
 
-  // Mock posts data - replace with actual API call
-  const posts = [
-    {
-      id: 1,
-      title: 'New Office Policy Implementation',
-      content:
-        'I think the new office policy regarding remote work is great, but I have some concerns about the implementation timeline. Has anyone else noticed that the transition period might be too short?',
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'Policy',
-      upvotes: 127,
-      downvotes: 12,
-      views: 456,
-      comments: 23,
-      isUpvoted: false,
-      isDownvoted: false,
-      createdAt: '2 hours ago',
-      tags: ['remote-work', 'policy', 'implementation'],
-    },
-    {
-      id: 2,
-      title: 'Team Building Event Ideas',
-      content:
-        "Looking for suggestions for our next team building event. We want something that everyone can participate in, whether they're remote or in-office. Any creative ideas?",
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'Events',
-      upvotes: 89,
-      downvotes: 5,
-      views: 234,
-      comments: 15,
-      isUpvoted: true,
-      isDownvoted: false,
-      createdAt: '4 hours ago',
-      tags: ['team-building', 'events', 'remote'],
-    },
-    {
-      id: 3,
-      title: 'IT Support Process Improvements',
-      content:
-        'The current IT support process takes too long. I submitted a ticket 3 days ago and still no response. Anyone else experiencing this? We need a better system.',
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'IT',
-      upvotes: 67,
-      downvotes: 8,
-      views: 189,
-      comments: 12,
-      isUpvoted: false,
-      isDownvoted: false,
-      createdAt: '6 hours ago',
-      tags: ['it-support', 'process', 'improvement'],
-    },
-    {
-      id: 4,
-      title: 'Employee Wellness Program Feedback',
-      content:
-        'The new wellness program is amazing! I love the gym membership reimbursement and mental health days. Has anyone tried the meditation sessions?',
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'Wellness',
-      upvotes: 156,
-      downvotes: 3,
-      views: 567,
-      comments: 31,
-      isUpvoted: false,
-      isDownvoted: false,
-      createdAt: '8 hours ago',
-      tags: ['wellness', 'mental-health', 'gym'],
-    },
-    {
-      id: 5,
-      title: 'Workplace Communication Tools',
-      content:
-        "We're considering switching from Slack to Microsoft Teams. What are your thoughts? I'm concerned about the learning curve and integration with our existing tools.",
-      author: 'Anonymous Employee',
-      authorInitial: 'A',
-      category: 'Workplace',
-      upvotes: 43,
-      downvotes: 15,
-      views: 123,
-      comments: 8,
-      isUpvoted: false,
-      isDownvoted: true,
-      createdAt: '12 hours ago',
-      tags: ['communication', 'tools', 'microsoft-teams'],
-    },
-  ];
+  // debounce search prevents calling the api on every key press
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId;
+      return (value) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          setSearch(value);
+          setPage(1);
+        }, 500);
+      };
+    })(),
+    []
+  );
 
-  const categories = [
-    { key: 'all', label: 'All Posts', color: 'primary' },
-    { key: 'policy', label: 'Policy', color: 'secondary' },
-    { key: 'workplace', label: 'Workplace', color: 'success' },
-    { key: 'events', label: 'Events', color: 'warning' },
-    { key: 'it', label: 'IT', color: 'info' },
-    { key: 'wellness', label: 'Wellness', color: 'error' },
-  ];
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    setSearchDisplay(value);
+    debouncedSearch(value);
+  };
 
-  // Filter posts based on search query and category
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+  const handleCategoryChange = (event) => {
+    setSelectedCategory(event.target.value);
+    setPage(1);
+  };
 
-    const matchesCategory =
-      selectedCategory === 'all' || post.category.toLowerCase() === selectedCategory;
+  const handleSortChange = (event) => {
+    setSort(event.target.value);
+    setPage(1);
+  };
 
-    return matchesSearch && matchesCategory;
+  const form = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(postSchema),
+    defaultValues: defaultValuesPost,
   });
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+  const {
+    handleSubmit,
+    register,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = form;
 
-  // Reset to page 1 when search or filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
-
-  const handlePageChange = (event, page) => {
-    setCurrentPage(page);
+  const onSubmit = async (data) => {
+    await useCreatePost(data);
+    reset();
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: isMobile ? 1 : 2, mb: 4, px: isMobile ? 1 : 3 }}>
-      {/* Search and Filter Section */}
-      <Box sx={{ mb: isMobile ? 2 : 4 }}>
-        {/* Search Bar */}
-        <TextField
-          fullWidth
-          placeholder="Search posts, topics, or tags..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mb: isMobile ? 2 : 3 }}
-        />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Card>
+        <CardHeader title="Share Anonymous Feedback" />
+        <CardContent component="form" onSubmit={handleSubmit(onSubmit)}>
+          <TextField
+            fullWidth
+            placeholder="Enter your feedback title..."
+            variant="outlined"
+            sx={{ mb: 2 }}
+            {...register('title')}
+            error={errors && errors.title ? true : false}
+            helperText={errors ? errors?.title?.message : null}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="What's on your mind? Your feedback is completely anonymous..."
+            variant="outlined"
+            sx={{ mb: 2 }}
+            {...register('body')}
+            error={errors && errors.body ? true : false}
+            helperText={errors ? errors?.body?.message : null}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {categories &&
+                categories.map((category) => {
+                  const selectedCategoryId = watch('category_id');
+                  const isSelected = selectedCategoryId === category.id;
+                  const hasError = errors?.category_id && selectedCategoryId === 0;
 
-        {/* Category Filters */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: 1,
-            mb: 2,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: isMobile ? 1 : 0 }}>
-            <FilterListIcon color="action" />
-            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-              Filter by:
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ width: '100%' }}>
-            {categories.map((category) => (
-              <Chip
-                key={category.key}
-                label={category.label}
-                color={selectedCategory === category.key ? category.color : 'default'}
-                variant={selectedCategory === category.key ? 'filled' : 'outlined'}
-                onClick={() => setSelectedCategory(category.key)}
-                size="small"
-              />
-            ))}
-          </Stack>
-        </Box>
-
-        {/* Results Count */}
-        <Typography variant="body2" color="text.secondary">
-          Showing {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} of{' '}
-          {filteredPosts.length} posts
-        </Typography>
-      </Box>
-
-      {/* Posts Feed */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {currentPosts.length > 0 ? (
-          currentPosts.map((post) => <Post key={post.id} post={post} />)
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-              No posts found
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Try adjusting your search terms or category filter
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-              }}
-            >
-              Clear Filters
+                  return (
+                    <Chip
+                      key={category.id}
+                      label={category.name}
+                      variant={isSelected ? 'filled' : 'outlined'}
+                      size="small"
+                      color={hasError ? 'error' : isSelected ? 'primary' : 'default'}
+                      onClick={() => {
+                        setValue('category_id', category.id);
+                      }}
+                    />
+                  );
+                })}
+            </Box>
+            <Button variant="contained" startIcon={<Message />} type="submit">
+              Post Feedback
             </Button>
+          </Box>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+            <TextField
+              placeholder="Search posts..."
+              value={searchDisplay}
+              onChange={handleSearchChange}
+              size="small"
+              sx={{ flex: 1 }}
+            />
+
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Category</InputLabel>
+              <Select value={selectedCategory} onChange={handleCategoryChange} label="Category">
+                <MenuItem value="">All Categories</MenuItem>
+                {categories &&
+                  categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Sort</InputLabel>
+              <Select value={sort} onChange={handleSortChange} label="Sort">
+                <MenuItem value="desc">Newest First</MenuItem>
+                <MenuItem value="asc">Oldest First</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </CardContent>
+      </Card>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {postsLoading ? (
+          <div>Loading posts...</div>
+        ) : posts && posts.length > 0 ? (
+          posts.map((post) => <Post key={post.id} post={post} />)
+        ) : (
+          <div>No posts found.</div>
+        )}
+
+        {meta && meta.total > meta.per_page && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <Pagination
+              count={Math.ceil(meta.total / meta.per_page)}
+              page={parseInt(meta.current_page)}
+              onChange={handlePageChange}
+              color="primary"
+            />
           </Box>
         )}
       </Box>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            color="primary"
-            size="large"
-            showFirstButton
-            showLastButton
-          />
-        </Box>
-      )}
-    </Container>
+    </Box>
   );
 }
 

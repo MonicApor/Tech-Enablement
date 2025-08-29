@@ -7,6 +7,9 @@ let theme = createTheme({
   palette,
   typography,
   breakpoints,
+  shape: {
+    borderRadius: 8,
+  },
 });
 
 theme = responsiveFontSizes(theme);

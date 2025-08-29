@@ -1,9 +1,17 @@
 import { faker } from '@faker-js/faker';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Box, Container, Grid, Button as MuiButton, Typography } from '@mui/material';
+import { Analytics, Feedback, Security } from '@mui/icons-material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Container,
+  Grid,
+  Button as MuiButton,
+  Typography,
+} from '@mui/material';
 import ButtonRound from 'components/atoms/ButtonRound';
-import Feature from 'components/atoms/Feature';
 import HeroImage from 'components/atoms/HeroImage';
 import Section from 'components/atoms/Section';
 import CallToAction from 'components/molecules/CallToAction';
@@ -15,22 +23,19 @@ function Landing() {
 
   const features = [
     {
+      icon: <Security sx={{ fontSize: 48, color: 'primary.main' }} />,
       title: t('pages.landing.docker.heading'),
       description: t('pages.landing.docker.description'),
-      image: '/static/images/docker.png',
-      left: true,
     },
     {
+      icon: <Feedback sx={{ fontSize: 48, color: 'secondary.main' }} />,
       title: t('pages.landing.react.heading'),
       description: t('pages.landing.react.description'),
-      image: '/static/images/react.png',
-      left: false,
     },
     {
+      icon: <Analytics sx={{ fontSize: 48, color: 'primary.main' }} />,
       title: t('pages.landing.laravel.heading'),
       description: t('pages.landing.laravel.description'),
-      image: '/static/images/laravel.png',
-      left: true,
     },
   ];
 
@@ -49,7 +54,8 @@ function Landing() {
     /** dummy reviews data */
   }
   const reviews = [...Array(9)].map(() => ({
-    avatar: faker.image.people(120, 120, true),
+    avatar:
+      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjY2NjY2NjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NjY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlVzZXI8L3RleHQ+PC9zdmc+',
     name: `${faker.name.firstName()} ${faker.name.lastName()}`,
     comment: faker.lorem.words(15),
     rating: Math.random() * (5 - 1) + 1,
@@ -63,7 +69,7 @@ function Landing() {
         image="http://test.com/"
       />
 
-      <HeroImage image="/static/images/landing-cover.jpg" height="calc(100vh - 100px)">
+      <HeroImage image="/static/images/bg-hero2.png" height="calc(70vh - 64px)">
         <Box
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}
         >
@@ -97,20 +103,56 @@ function Landing() {
         </Box>
       </HeroImage>
 
-      {/** Features List */}
-      <Section heading={t('pages.landing.why_heading')}>
-        {features.map((feature, key) => {
-          return (
-            <Feature
-              key={key}
-              title={feature.title}
-              description={feature.description}
-              image={feature.image}
-              left={feature.left}
-            />
-          );
-        })}
-      </Section>
+      <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
+        <Typography
+          variant="h2"
+          component="h2"
+          textAlign="center"
+          gutterBottom
+          sx={{ mb: 6, color: 'text.primary' }}
+        >
+          {t('pages.landing.why_heading')}
+        </Typography>
+        <Grid container spacing={4} justifyContent="center">
+          {features.map((feature, index) => (
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              md={4}
+              key={index}
+              sx={{ display: 'flex', justifyContent: 'center' }}
+            >
+              <Card
+                elevation={2}
+                sx={{
+                  width: '100%',
+                  maxWidth: 320,
+                  textAlign: 'center',
+                  p: 3,
+                  transition: 'transform 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 4,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+                    {feature.icon}
+                  </Box>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    {feature.description}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
 
       {/** Our Clients */}
       <Section heading={t('pages.landing.our_customers_heading')} background="white">

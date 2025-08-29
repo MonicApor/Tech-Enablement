@@ -1,207 +1,78 @@
 import React from 'react';
-import CommentIcon from '@mui/icons-material/Comment';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import {
-  Avatar,
-  Box,
-  Card,
-  CardContent,
-  Chip,
-  Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { AccessTime } from '@mui/icons-material';
+import TrendingUp from '@mui/icons-material/TrendingUp';
+import { Box, Card, CardContent, CardHeader, Chip, Typography } from '@mui/material';
 
-const Rightbar = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+function Rightbar() {
+  const trendingTopics = [
+    { topic: 'Remote Work', posts: 24 },
+    { topic: 'Team Communication', posts: 18 },
+    { topic: 'Office Environment', posts: 12 },
+    { topic: 'Professional Development', posts: 9 },
+  ];
 
-  const trendingPosts = [
-    {
-      id: 1,
-      title: 'New Office Policy Implementation',
-      author: 'John Smith',
-      authorAvatar:
-        'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&w=1000&q=80',
-      upvotes: 127,
-      comments: 23,
-      views: 456,
-      category: 'Policy',
-      timeAgo: '2 hours ago',
-    },
-    {
-      id: 2,
-      title: 'Remote Work Best Practices',
-      author: 'Sarah Johnson',
-      authorAvatar: 'https://cdn.pixabay.com/photo/2015/04/19/08/32/marguerite-729510_1280.jpg',
-      upvotes: 89,
-      comments: 15,
-      views: 234,
-      category: 'Workplace',
-      timeAgo: '4 hours ago',
-    },
-    {
-      id: 3,
-      title: 'Team Building Event Ideas',
-      author: 'Mike Chen',
-      authorAvatar:
-        'https://media.istockphoto.com/id/1093110112/photo/picturesque-morning-in-plitvice-national-park.jpg',
-      upvotes: 67,
-      comments: 12,
-      views: 189,
-      category: 'Events',
-      timeAgo: '6 hours ago',
-    },
-    {
-      id: 4,
-      title: 'IT Support Process Improvements',
-      author: 'Lisa Wang',
-      authorAvatar:
-        'https://www.befunky.com/images/prismic/1f427434-7ca0-46b2-b5d1-7d31843859b6_funky-focus-red-flower-field-after.jpeg',
-      upvotes: 54,
-      comments: 8,
-      views: 145,
-      category: 'IT',
-      timeAgo: '8 hours ago',
-    },
-    {
-      id: 5,
-      title: 'Employee Wellness Program',
-      author: 'David Brown',
-      authorAvatar: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e',
-      upvotes: 43,
-      comments: 6,
-      views: 123,
-      category: 'Wellness',
-      timeAgo: '12 hours ago',
-    },
+  const recentActivity = [
+    { action: 'New feedback on Meeting Culture', time: '5 min ago' },
+    { action: 'Policy update discussion', time: '1 hour ago' },
+    { action: 'Weekly feedback summary', time: '2 hours ago' },
   ];
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        p: isMobile ? 1 : 0,
-        pt: isMobile ? 0 : 2,
-        pr: isMobile ? 0 : 2,
-        height: isMobile ? 'auto' : '100vh',
-        overflowY: isMobile ? 'visible' : 'auto',
-      }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          maxHeight: isMobile ? 'auto' : '100vh',
-          overflowY: isMobile ? 'visible' : 'auto',
-        }}
-      >
-        <Card sx={{ mb: 3, boxShadow: isMobile ? 0 : 2, borderRadius: isMobile ? 0 : 1 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TrendingUpIcon sx={{ mr: 1, color: 'primary.main' }} />
-              <Typography variant="h6" fontWeight={600}>
-                Trending Posts
-              </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Trending Topics */}
+      <Card sx={{ boxShadow: 2, borderRadius: 1 }}>
+        <CardHeader
+          title={
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <TrendingUp sx={{ mr: 1, fontSize: 20 }} />
+              Trending Topics
             </Box>
+          }
+        />
+        <CardContent sx={{ pt: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {trendingTopics.map((topic, index) => (
+              <Box
+                key={index}
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {topic.topic}
+                </Typography>
+                <Chip label={topic.posts} size="small" variant="outlined" />
+              </Box>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
 
-            <List sx={{ p: 0 }}>
-              {trendingPosts.map((post, index) => (
-                <React.Fragment key={post.id}>
-                  <ListItem sx={{ px: 0, py: 1.5 }}>
-                    <ListItemAvatar>
-                      <Avatar src={post.authorAvatar} alt={post.author} />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle2" fontWeight={500} sx={{ mb: 0.5 }}>
-                          {post.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            by {post.author} • {post.timeAgo}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 1 }}>
-                            <Chip
-                              label={post.category}
-                              size="small"
-                              color="primary"
-                              variant="outlined"
-                            />
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <ThumbUpIcon fontSize="small" color="action" />
-                              <Typography variant="caption" color="text.secondary">
-                                {post.upvotes}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <CommentIcon fontSize="small" color="action" />
-                              <Typography variant="caption" color="text.secondary">
-                                {post.comments}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <VisibilityIcon fontSize="small" color="action" />
-                              <Typography variant="caption" color="text.secondary">
-                                {post.views}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                  {index < trendingPosts.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-        <Card sx={{ boxShadow: isMobile ? 0 : 2, borderRadius: isMobile ? 0 : 1 }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+      {/* Recent Activity */}
+      <Card sx={{ boxShadow: 2, borderRadius: 1 }}>
+        <CardHeader
+          title={
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <AccessTime sx={{ mr: 1, fontSize: 20 }} />
               Recent Activity
-            </Typography>
-            <List sx={{ p: 0 }}>
-              {[
-                { text: 'New post created in Policy', time: '5 min ago' },
-                { text: 'Comment added to Remote Work', time: '12 min ago' },
-                { text: 'Upvote on Team Building', time: '18 min ago' },
-                { text: 'New user joined', time: '25 min ago' },
-                { text: 'Post shared in IT', time: '32 min ago' },
-              ].map((activity, index) => (
-                <React.Fragment key={index}>
-                  <ListItem sx={{ px: 0, py: 1 }}>
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" sx={{ mb: 0.5 }}>
-                          {activity.text}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="caption" color="text.secondary">
-                          {activity.time}
-                        </Typography>
-                      }
-                    />
-                  </ListItem>
-                  {index < 4 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-      </Box>
+            </Box>
+          }
+        />
+        <CardContent sx={{ pt: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {recentActivity.map((activity, index) => (
+              <Box key={index}>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  {activity.action}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {activity.time}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
     </Box>
   );
-};
+}
 
 export default Rightbar;

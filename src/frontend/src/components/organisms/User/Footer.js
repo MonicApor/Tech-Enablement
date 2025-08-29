@@ -1,63 +1,50 @@
 import { useTranslation } from 'react-i18next';
-import { Box, Container, Grid, Typography } from '@mui/material';
-import { blueGrey } from '@mui/material/colors';
-import List from 'components/molecules/List';
+import { Box, Button, Container, Grid, Typography } from '@mui/material';
 
 function Footer() {
-  const currentYear = new Date().getFullYear();
   const { t } = useTranslation();
 
-  const navigation = [
-    { label: t('menu.privacy_policy'), url: '/privacy-policy' },
-    { label: t('menu.faq'), url: '/faq' },
-    { label: t('menu.terms'), url: '/terms' },
-  ];
-
-  const resources = [
-    { label: t('menu.styleguide'), url: '/styleguide' },
-    { label: t('menu.api_reference'), url: '/#' },
-    { label: t('menu.support'), url: '/#' },
-  ];
-
   return (
-    <Box sx={{ py: 8, color: blueGrey['A100'], backgroundColor: blueGrey[900] }} component="footer">
-      <Container>
+    <Box
+      sx={{
+        backgroundColor: 'background.paper',
+        py: 4,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Container maxWidth="lg">
         <Grid container spacing={4}>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box sx={{ mb: 2 }}>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <img
-                src="/static/images/sprobe-logo.png"
-                alt={process.env.REACT_APP_SITE_TITLE}
-                width="100"
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/anon-removebg-preview-0Xgl9VUadY2fLQy9CidNBnA6DMPm9l.png"
+                alt="Anon Logo"
+                style={{ height: 32, marginRight: 12 }}
               />
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                Anon
+              </Typography>
             </Box>
-            <Typography variant="body2" component="span">
-              &copy; {currentYear} {process.env.REACT_APP_SITE_TITLE}.
+            <Typography variant="body2" color="text.secondary">
+              {t('pages.landing.sub_heading')}
             </Typography>
           </Grid>
-
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Typography
-              variant="body2"
-              component="h5"
-              sx={{ fontWeight: 600, textTransform: 'uppercase' }}
-            >
-              {t('labels.navigation')}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              {t('menu.quick_links')}
             </Typography>
-
-            <List items={navigation} />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Typography
-              variant="body2"
-              component="h5"
-              sx={{ fontWeight: 600, textTransform: 'uppercase' }}
-            >
-              {t('labels.resources')}
-            </Typography>
-
-            <List items={resources} variant="body2" />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button size="small" sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}>
+                {t('menu.privacy_policy')}
+              </Button>
+              <Button size="small" sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}>
+                {t('menu.terms')}
+              </Button>
+              <Button size="small" sx={{ justifyContent: 'flex-start', color: 'text.secondary' }}>
+                {t('menu.support')}
+              </Button>
+            </Box>
           </Grid>
         </Grid>
       </Container>

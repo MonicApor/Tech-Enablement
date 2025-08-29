@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login, loginWithMicrosoft } from 'services/auth';
 import { setProfile } from 'store/slices/profileSlice';
@@ -17,6 +17,7 @@ import PageTitle from 'components/atoms/PageTitle';
 function Login() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.profile.user);
 
@@ -39,16 +40,17 @@ function Login() {
   useEffect(() => {
     if (user) {
       const { role } = user;
-      const redirect = role === 'System Admin' ? '/admin/' : '/employee';
-      // use native redirect to avoid ui  on state change
-      window.location = redirect;
+      const redirect = role === 'System Admin' ? '/admin' : '/employee';
+      navigate(redirect);
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleLogin = async (data) => {
     const { username, password } = data;
     await login({ username, password, setError })
       .then(async (user) => {
+        dispatch(setProfile(user));
+
         const { role } = user;
         let redirect = '';
 
@@ -61,8 +63,7 @@ function Login() {
             break;
         }
         const query = new URLSearchParams(location.search);
-        // use native redirect to avoid ui glitch on state change
-        window.location = query.get('redirect_to') ?? redirect;
+        navigate(query.get('redirect_to') ?? redirect);
       })
       .catch((err) => {
         const { message } = err.response.data;
@@ -87,7 +88,7 @@ function Login() {
           break;
       }
       const query = new URLSearchParams(location.search);
-      window.location = query.get('redirect_to') ?? redirect;
+      navigate(query.get('redirect_to') ?? redirect);
     } catch (error) {
       console.error('Microsoft login failed:', error);
       toast('Microsoft 365 login failed. Please try again.', { type: 'error' });
@@ -95,7 +96,7 @@ function Login() {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ pt: 8 }}>
+    <Container maxWidth="sm" sx={{ pt: 8 }}>
       <Card sx={{ p: 4 }}>
         <PageTitle title={t('labels.login')} />
 
@@ -170,6 +171,18 @@ function Login() {
               >
                 {t('labels.forgot_password')}
               </Link>
+            </Grid>
+            <Grid size={12} sx={{ textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('pages.login.no_account')}
+                <Link
+                  to="/signup"
+                  component={RouterLink}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {t('pages.login.sign_up_here')}
+                </Link>
+              </Typography>
             </Grid>
           </Grid>
         </Box>

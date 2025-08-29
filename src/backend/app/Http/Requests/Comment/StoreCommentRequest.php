@@ -22,7 +22,7 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => 'required|string|min:10|max:1000',
+            'body' => 'required|string|min:2|max:1000',
             'post_id' => 'required|exists:posts,id',
             'parent_id' => 'nullable|exists:comments,id',
         ];
@@ -33,6 +33,7 @@ class StoreCommentRequest extends FormRequest
         return [
             'body.required' => 'The body is required.',
             'body.max' => 'The body must be less than 1000 characters.',
+            'body.min' => 'The body must be at least 2 characters.',
             'post_id.required' => 'The post is required.',
             'post_id.exists' => 'The selected post is invalid.',
             'parent_id.exists' => 'The selected parent comment is invalid.',

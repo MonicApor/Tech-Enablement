@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { markNotificationSeen, searchNotifications } from 'services/notification.service';
+import { markNotificationSeen } from 'services/notification.service';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
@@ -51,8 +51,8 @@ const NotificationIcon = (props) => {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const { data, meta, unread } = await searchNotifications(query);
-      setNotifications(() => [...notifications, ...data]);
+      // const { data, meta, unread } = await searchNotifications(query);
+      // setNotifications(() => [...notifications, ...data]);
       setUnread(unread);
       setMeta(meta);
     } catch (error) {
@@ -86,15 +86,13 @@ const NotificationIcon = (props) => {
   }, [query]);
 
   useEffect(() => {
-    if (user !== null || user !== undefined) {
-      // subscribe to private channel & listen to specific event from backend \App\Events\
-      window.Echo.private(`user-notification.${user.id}`).listen('NotificationCreated', (e) => {
+    if (user !== null && user !== undefined && window.Echo) {
+      const channel = window.Echo.private(`user-notification.${user.id}`);
+      channel.listen('NotificationCreated', (e) => {
         const { notification } = e;
         handleNewNotification(notification);
       });
-      // clean up connection to avoid duplicate broadcast
-      return () =>
-        window.Echo.private(`user-notification.${user.id}`).stopListening('NotificationCreated');
+      return () => channel.stopListening('NotificationCreated');
     }
   }, [user]);
 

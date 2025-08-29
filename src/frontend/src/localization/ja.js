@@ -47,12 +47,19 @@ const ja = {
       newNotification: '新しい通知があります。',
     },
     pages: {
+      login: {
+        no_account: 'アカウントをお持ちですか？',
+        sign_up_here: 'ここでサインアップ',
+      },
       signup: {
         agree_to_terms: '[サインアップ]をクリックすると、読んだことに同意したことになります',
         signup_complete:
           '確認メールが受信トレイに送信されました。 リンクをクリックして、登録プロセスを完了します。',
         terms_conditions: '規約と条件',
         create_free_account: '無料アカウントを作成する',
+        signup_description: '匿名でフィードバックを共有する従業員が数千人います',
+        already_have_account: 'アカウントをお持ちですか？',
+        sign_in_here: 'ここでサインイン',
       },
       forgot_password: {
         sub_heading: 'アカウントを復旧するには、以下にメールアドレスを入力してください。',
@@ -82,7 +89,7 @@ const ja = {
         activated: 'アカウントが有効になりました。 これで、アカウントにログインできます。',
       },
       dashboard: {
-        main_heading: 'React Base Templateへようこそ！',
+        main_heading: '匿名従業員フィードバック！',
         sub_heading: 'Reactプロジェクトの開発に関する軽量の定型文。',
         new_users: '新しいユーザー',
         total_sales: '総売上高',
@@ -110,28 +117,31 @@ const ja = {
         failed_message: '更新に失敗しました。',
       },
       landing: {
-        main_heading: 'React Base Templateへようこそ！',
-        sub_heading: 'Reactプロジェクトの開発に関する軽量の定型文。',
-        why_heading: 'なぜベーステンプレートを使用するのですか？',
+        main_heading: '匿名従業員フィードバック！',
+        sub_heading:
+          'すべての声が大切とされるオープンなコミュニケーション文化を築きましょう。安全かつ匿名でフィードバックを共有できます。',
+        why_heading: 'なぜ匿名を選ぶのですか？',
         docker: {
-          heading: '柔軟な環境',
+          heading: '完全な匿名性',
           description:
-            '「自分のマシンで動作する」という問題を完全に解消します。 環境のセットアップ、環境固有の問題のデバッグ、およびより移植性が高くセットアップが簡単なコードベースに費やす時間を短縮します。',
+            'あなたのアイデンティティは保護されています。 報復や判断の恐れなしにフィードバックを共有できます。',
         },
         react: {
-          heading: '高速で直感的なUI',
+          heading: 'リアルタイムフィードバック',
           description:
-            'ReactJSは非常に直感的に操作でき、UIのレイアウトに双方向性を提供します。 これらのコンポーネントを利用して1つの場所に統合できるように、構成可能です。 したがって、コードははるかに保守可能で柔軟になります。',
+            'フィードバックを即座に投稿し、応答します。 意味のある職場の会話を作成します。',
         },
         laravel: {
-          heading: '強力なAPI',
-          description:
-            'LaravelのAPI機能を利用してバックエンドAPIを簡単に開発できます。 サードパーティの統合とライブラリが簡単で、すばやく簡単です。',
+          heading: '実行可能な洞察',
+          description: '匿名フィードバックを実行可能な改善に変えます。',
         },
         our_customers_heading: 'お客様',
         reviews_heading: '私たちのクライアントが言うこと',
         see_all_reviews: 'すべてのレビューを見る',
-        call_to_action: '今すぐアプリケーション開発を加速しましょう!',
+        call_to_action: '職場を変える準備はできていますか？',
+        call_to_action_description:
+          '匿名フィードバックを通じて、より良い職場文化を築く組織が増えています。',
+        call_to_action_button: '今すぐ無料で始める',
       },
       about: {
         main_heading: '私たちの物語',

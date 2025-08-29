@@ -1,0 +1,77 @@
+import { toast } from 'react-toastify';
+import useSWR, { mutate } from 'swr';
+import api from 'utils/api';
+import { fetcher } from './categories.service';
+
+export const usePosts = (page = 1, search = '', categoryId = '', sort = 'desc', perPage = 10) => {
+  const params = new URLSearchParams();
+  if (page > 1) params.append('page', page);
+  if (search) params.append('search', search);
+  if (categoryId) params.append('category_id', categoryId);
+  if (sort) params.append('sort', sort);
+  if (perPage !== 10) params.append('per_page', perPage);
+
+  const queryString = params.toString();
+  const url = `/posts${queryString ? `?${queryString}` : ''}`;
+
+  const { data, error, mutate, isLoading } = useSWR(url, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
+
+  return {
+    posts: data?.data,
+    meta: data?.meta,
+    error,
+    mutate,
+    isLoading,
+  };
+};
+
+export const useCreatePost = async (data) => {
+  try {
+    const response = await api.post('/posts', data);
+    mutate((key) => key && key.startsWith('/posts'));
+    toast('Post created successfully!', { type: 'success' });
+    return response.data;
+  } catch (error) {
+    toast('Failed to create post. Please try again.', { type: 'error' });
+    throw error;
+  }
+};
+
+export const useUpdatePost = async (id, data) => {
+  try {
+    const response = await api.put(`/posts/${id}`, data);
+    mutate((key) => key && key.startsWith('/posts'));
+    toast('Post updated successfully!', { type: 'success' });
+    return response.data;
+  } catch (error) {
+    toast('Failed to update post. Please try again.', { type: 'error' });
+    throw error;
+  }
+};
+
+export const useDeletePost = async (id) => {
+  try {
+    const response = await api.delete(`/posts/${id}`);
+    mutate((key) => key && key.startsWith('/posts'));
+    toast('Post deleted successfully!', { type: 'success' });
+    return response.data;
+  } catch (error) {
+    toast('Failed to delete post. Please try again.', { type: 'error' });
+    throw error;
+  }
+};
+
+export const useUpvotePost = async (id) => {
+  const response = await api.post(`/posts/${id}/upvote`);
+  mutate((key) => key && key.startsWith('/posts'));
+  return response.data;
+};
+
+export const useFlagPost = async (id) => {
+  const response = await api.post(`/posts/${id}/flag`);
+  mutate((key) => key && key.startsWith('/posts'));
+  return response.data;
+};

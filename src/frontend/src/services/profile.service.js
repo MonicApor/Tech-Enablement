@@ -1,7 +1,7 @@
 import api from 'utils/api';
 
 const createProfile = async (data) => {
-  const req = api.post('/register', data).then(({ data }) => data.data);
+  const req = api.post('/auth/register', data).then(({ data }) => data.data);
   return await req;
 };
 

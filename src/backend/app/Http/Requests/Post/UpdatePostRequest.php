@@ -3,19 +3,10 @@
 namespace App\Http\Requests\Post;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePostRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        //only post owned by the user can update
-        $post = $this->route('post');
-        return auth()->check() && auth()->user()->id === $post->user_id;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -24,8 +15,23 @@ class UpdatePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'sometimes|required|string|max:255',
-            'body' => 'sometimes|required|string|min:10|max:1000',
+                 'title' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('posts', 'title')->ignore($this->route('post')->id)->where(function ($query) {
+                    return $query->where('user_id', auth()->id());
+                }),
+            ],
+
+            'body' => [
+                'sometimes',
+                'required',
+                'string',
+                'min:10',
+                'max:1000',
+            ],
             'category_id' => 'sometimes|required|exists:categories,id',
             'status' => 'sometimes|in:active,flagged,resolved',
         ];

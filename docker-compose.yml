@@ -52,6 +52,16 @@ services:
     environment:
       TZ: ${TIMEZONE}
       XDEBUG_CONFIG: "remote_host=10.0.2.2"
+      API_CLIENT_ID: ${API_CLIENT_ID}
+      API_CLIENT_SECRET: ${API_CLIENT_SECRET}
+      BROADCAST_DRIVER: pusher
+      PUSHER_APP_ID: ${PUSHER_APP_ID}
+      PUSHER_APP_KEY: ${PUSHER_APP_KEY}
+      PUSHER_APP_SECRET: ${PUSHER_APP_SECRET}
+      PUSHER_HOST: soketi
+      PUSHER_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_APP_CLUSTER: mt1
     links:
       - mysql:mysql
       - redis:redis
@@ -120,9 +130,16 @@ services:
     environment:
       - NODE_ENV=${ENVIRONMENT}
       - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_HOST=localhost
+      - WDS_SOCKET_PORT=3000
       - REACT_APP_AZURE_CLIENT_ID=${REACT_APP_AZURE_CLIENT_ID}
       - REACT_APP_AZURE_TENANT_ID=${REACT_APP_AZURE_TENANT_ID}
       - REACT_APP_API_URL=http://localhost:8000/api
+      - REACT_APP_CLIENT_ID=2
+      - REACT_APP_CLIENT_SECRET=m9wfNoY0kBjNtyPAD0h5JFdkDqdm0FfM8lalkwtT
+      - REACT_APP_WEBSOCKET_HOST=soketi
+      - REACT_APP_WEBSOCKET_KEY=${PUSHER_APP_KEY}
+      - REACT_APP_WEBSOCKET_CLUSTER=mt1
     ports:
       - "3000:3000"
 
@@ -159,6 +176,10 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     container_name: ${PROJECT_NAME}_mailhog
+    environment:
+      - MH_STORAGE=memory
+      - MH_HOSTNAME=mailhog
+      - MH_DISABLE_CLICK_TRACKING=true
     ports:
       - 1025:1025
       - 8025:8025

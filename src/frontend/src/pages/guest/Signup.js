@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { createProfile } from 'services/profile.service';
 import * as yup from 'yup';
@@ -14,7 +14,7 @@ import errorHandler from 'utils/errorHandler';
 
 function Signup() {
   const { t } = useTranslation();
-
+  const navigate = useNavigate();
   // form validation
   const schema = yup.object({
     first_name: yup.string().required(t('form.required')),
@@ -47,11 +47,14 @@ function Signup() {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ pt: 8 }}>
+    <Container maxWidth="sm" sx={{ pt: 8 }}>
       <Card sx={{ p: 4 }}>
         <PageTitle title={t('pages.signup.create_free_account')} />
 
         <Box component="form" noValidate onSubmit={handleSubmit(handleSignUp)} sx={{ mt: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+            {t('pages.signup.signup_description')}
+          </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
@@ -113,6 +116,18 @@ function Signup() {
               <Button fullWidth type="submit">
                 {t('labels.signup')}
               </Button>
+            </Grid>
+            <Grid size={12} sx={{ textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('pages.signup.already_have_account')}
+                <Button
+                  variant="text"
+                  onClick={() => navigate('/login')}
+                  sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+                >
+                  {t('pages.signup.sign_in_here')}
+                </Button>
+              </Typography>
             </Grid>
           </Grid>
         </Box>

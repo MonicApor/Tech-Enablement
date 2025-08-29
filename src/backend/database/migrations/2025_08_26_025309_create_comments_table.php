@@ -21,6 +21,8 @@ return new class extends Migration
             $table->enum('status', ['active', 'flagged', 'resolved'])->default('active');
             $table->timestamp('flaged_at')->nullable();
             $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 

@@ -24,11 +24,11 @@ const routes = [
   //   component: 'pages/guest/About',
   //   auth: false,
   // },
-  // {
-  //   path: '/signup',
-  //   component: 'pages/guest/Signup',
-  //   auth: false,
-  // },
+  {
+    path: '/signup',
+    component: 'pages/guest/Signup',
+    auth: false,
+  },
   {
     path: '/login',
     component: 'pages/guest/Login',
@@ -44,11 +44,11 @@ const routes = [
   //   component: 'pages/guest/ResetPassword',
   //   auth: false,
   // },
-  // {
-  //   path: '/activate',
-  //   component: 'pages/guest/Activate',
-  //   auth: false,
-  // },
+  {
+    path: '/activate',
+    component: 'pages/guest/Activate',
+    auth: false,
+  },
   // {
   //   path: '/terms',
   //   component: 'pages/guest/Terms',

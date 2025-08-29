@@ -36,7 +36,9 @@ class CommentController extends Controller
     public function index(Post $post): JsonResponse
     {
         $comments = $post->topLevelComments()->with(['user', 'replies.user'])->orderBy('created_at', 'desc')->get();
-        return CommentResource::collection($comments);
+        return response()->json([
+            'data' => CommentResource::collection($comments)
+        ]);
     }
 
     /**
@@ -57,7 +59,12 @@ class CommentController extends Controller
      */
     public function store(StoreCommentRequest $request): JsonResponse
     {
-        $comment = Comment::create($request->validated());
+        $this->authorize('create', Comment::class);
+        
+        $data = $request->validated();
+        $data['user_id'] = auth()->user()->id;
+        
+        $comment = Comment::create($data);
         return response()->json([
             'message' => 'Comment created successfully',
             'data' => new CommentResource($comment->load('user')),
@@ -104,12 +111,7 @@ class CommentController extends Controller
      */
     public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
     {
-        //check if user owns the comment
-        if(auth()->user()->id !== $comment->user_id) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        $this->authorize('update', $comment);
 
         $comment->update($request->validated());
         return response()->json([
@@ -135,12 +137,7 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment): JsonResponse
     {
-        //check if user owns the comment
-        if(auth()->user()->id !== $comment->user_id) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        $this->authorize('delete', $comment);
 
         $comment->delete();
         return response()->json([
@@ -186,6 +183,8 @@ class CommentController extends Controller
      */
     public function unflag(Comment $comment): JsonResponse
     {
+        $this->authorize('unflag', $comment);
+        
         $comment->unflag();
         return response()->json([
             'message' => 'Comment unflagged successfully',

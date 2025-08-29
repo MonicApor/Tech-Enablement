@@ -113,6 +113,8 @@ if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
     echo -e "${SUCCESS_COLOR}done${NO_COLOR}"
 
     set_env "s/APP_URL=http:\/\/localhost/APP_URL=http:\/\/$APP_DOMAIN/g" src/backend/.env;
+    set_env "s/DB_HOST=127.0.0.1/DB_HOST=mysql/g" src/backend/.env;
+    set_env "s/DB_HOST=localhost/DB_HOST=mysql/g" src/backend/.env;
     set_env "s/DB_DATABASE=/DB_DATABASE=$MYSQL_DATABASE/g" src/backend/.env;
     set_env "s/DB_USERNAME=/DB_USERNAME=$MYSQL_USER/g" src/backend/.env;
     set_env "s/DB_PASSWORD=/DB_PASSWORD=$MYSQL_PASSWORD/g" src/backend/.env;

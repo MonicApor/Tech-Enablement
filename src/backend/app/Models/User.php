@@ -18,6 +18,9 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'first_name',
+        'last_name',
+        'middle_name',
         'name',
         'email',
         'username',
@@ -27,8 +30,13 @@ class User extends Authenticatable
         'microsoft_tenant_id',
         'user_type',
         'role',
+        'position',
         'immediate_supervisor',
         'hire_date',
+        'password',
+        'password_confirmation',
+        'login_attempts',
+        'user_status_id',
     ];
 
     /**
@@ -77,6 +85,39 @@ class User extends Authenticatable
         } while (self::where('username', $username)->exists());
 
         return $username;
+    }
+
+    /**
+     * Get the user status that owns the user.
+     */
+    public function userStatus()
+    {
+        return $this->belongsTo(UserStatus::class, 'user_status_id');
+    }
+
+    /**
+     * Get the activation tokens for the user.
+     */
+    public function activationTokens()
+    {
+        return $this->hasMany(ActivationToken::class);
+    }
+
+    /**
+     * Get the latest activation token for the user.
+     */
+    public function activationToken()
+    {
+        return $this->hasOne(ActivationToken::class)->latest();
+    }
+
+    /**
+     * Get the chats where this user is a participant.
+     */
+    public function chats()
+    {
+        return Chat::where('employee_user_id', $this->id)
+                    ->orWhere('hr_user_id', $this->id);
     }
 
     /**

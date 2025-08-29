@@ -7,7 +7,7 @@ function Section(props) {
   const { fullWidth = false, heading = null, children, background = 'none', ...rest } = props;
 
   return (
-    <Box component="section" sx={{ py: 12, backgroundColor: background }}>
+    <Box component="section" sx={{ py: 8, backgroundColor: background }}>
       <Container maxWidth={fullWidth ? 'lg' : false} {...rest}>
         <Typography
           component="h4"

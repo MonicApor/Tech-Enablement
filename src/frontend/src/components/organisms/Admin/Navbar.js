@@ -9,6 +9,7 @@ import MuiAppBar from '@mui/material/AppBar';
 import LanguageSelect from 'components/atoms/LanguageSelect';
 import AvatarNavDropdown from 'components/molecules/AvatarNavDropdown';
 import NotificationIcon from 'components/molecules/NotificationIcon';
+import useWebSocket from '../../../hooks/useWebSocket';
 
 const drawerWidth = 240;
 
@@ -35,6 +36,7 @@ function Navbar(props) {
   const location = useLocation();
   const [title, setTitle] = useState(null);
   const { t } = useTranslation();
+  useWebSocket();
 
   useEffect(() => {
     const link = links.find((link) => link.path === location.pathname);

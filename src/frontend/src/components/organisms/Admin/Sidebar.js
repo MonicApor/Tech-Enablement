@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Divider, IconButton, List, Toolbar, styled } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
-import { SidebarMenu } from 'components//molecules/SidebarMenu';
+import { SidebarMenu } from 'components/molecules/SidebarMenu';
 
 const drawerWidth = 240;
 
