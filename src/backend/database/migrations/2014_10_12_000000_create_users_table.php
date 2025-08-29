@@ -37,10 +37,13 @@ return new class extends Migration
             $table->string('role')->nullable();
             $table->string('immediate_supervisor')->nullable();
             $table->date('hire_date')->nullable();
+            $table->string('position')->nullable();
             
             // Status and security fields
             $table->integer('login_attempts')->default(0);
             $table->unsignedBigInteger('user_status_id')->nullable();
+
+            $table->softDeletes();
             
             $table->timestamps();
             

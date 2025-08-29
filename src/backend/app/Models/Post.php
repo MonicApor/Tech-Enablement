@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Post extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -23,6 +24,7 @@ class Post extends Model
         'resolved_at',
         'created_at',
         'updated_at',
+        'deleted_at',
     ];
 
     /**
@@ -60,18 +62,23 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function chats() : HasMany
+    {
+        return $this->hasMany(Chat::class);
+    }
+
     /**
      * Get the upvotes for the post.
      */
     public function upvotes() : HasMany
     {
-        return $this->hasMany(Upvote::class);
+        return $this->hasMany(PostUpvote::class);
     }
 
-    public function views() : HasMany
-    {
-        return $this->hasMany(View::class);
-    }
+    // public function views() : HasMany
+    // {
+    //     return $this->hasMany(View::class);
+    // }
 
     /**
      * Check if the post is flagged.
@@ -140,17 +147,49 @@ class Post extends Model
 
     public function getUpvotesCountAttribute()
     {
-        return $this->upvotes->count();
+        return $this->upvote_count ?? 0;
     }
 
     public function getViewsCountAttribute()
     {
-        return $this->views->count();
+        return $this->viewer_count ?? 0;
     }
 
     public function incrementUpvotes()
     {
         $this->increment('upvote_count');  
+    }
+
+    public function upvote()
+    {
+        $userId = auth()->id();
+        
+        // Check if user already upvoted this post
+        $existingUpvote = $this->upvotes()->where('user_id', $userId)->first();
+        
+        if ($existingUpvote) {
+            // User already upvoted, so remove the upvote (unlike)
+            $existingUpvote->delete();
+            $this->decrement('upvote_count');
+            return false; // Return false to indicate upvote was removed
+        } else {
+            // User hasn't upvoted, so add the upvote (like)
+            $this->upvotes()->create(['user_id' => $userId]);
+            $this->increment('upvote_count');
+            return true; // Return true to indicate upvote was added
+        }
+    }
+
+    /**
+     * Check if the current user has upvoted this post.
+     */
+    public function isUpvotedByUser()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        return $this->upvotes()->where('user_id', auth()->id())->exists();
     }
 
     public function incrementViews()
@@ -161,6 +200,22 @@ class Post extends Model
     public function flag()
     {
         $this->update(['flaged_at' => now()]);
+    }
+
+    public function unflag()
+    {
+        $this->update(['flaged_at' => null]);
+    }
+
+    public function toggleFlag()
+    {
+        if ($this->isFlagged()) {
+            $this->unflag();
+            return false;
+        } else {
+            $this->flag();
+            return true;
+        }
     }
 
     public function resolve()
@@ -188,4 +243,18 @@ class Post extends Model
         return $this->allComments()->count();
     }
 
+    /**
+     * Override the delete method to handle soft deletes for related chats and messages
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($post) {
+            // Soft delete related chats
+            $post->chats()->each(function ($chat) {
+                $chat->delete(); // This will trigger soft delete for chat messages too
+            });
+        });
+    }
 }

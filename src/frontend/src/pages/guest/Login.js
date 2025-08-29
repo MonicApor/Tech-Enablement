@@ -175,7 +175,11 @@ function Login() {
             <Grid size={12} sx={{ textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
                 {t('pages.login.no_account')}
-                <Link to="/signup" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link
+                  to="/signup"
+                  component={RouterLink}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
                   {t('pages.login.sign_up_here')}
                 </Link>
               </Typography>

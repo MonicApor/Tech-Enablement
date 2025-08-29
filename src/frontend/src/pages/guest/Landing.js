@@ -54,7 +54,8 @@ function Landing() {
     /** dummy reviews data */
   }
   const reviews = [...Array(9)].map(() => ({
-    avatar: faker.image.people(120, 120, true),
+    avatar:
+      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjY2NjY2NjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NjY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlVzZXI8L3RleHQ+PC9zdmc+',
     name: `${faker.name.firstName()} ${faker.name.lastName()}`,
     comment: faker.lorem.words(15),
     rating: Math.random() * (5 - 1) + 1,

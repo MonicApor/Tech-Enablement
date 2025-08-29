@@ -10,6 +10,54 @@ use Carbon\Carbon;
 class EmployeeImportSeeder extends Seeder
 {
     /**
+     * Map positions to roles based on department
+     */
+    private function getRoleFromPosition(string $position): string
+    {
+        // Management roles
+        $managementPositions = [
+            'System Admin',
+            'Group Leader',
+            'Technical Lead',
+            'Leader',
+        ];
+
+        // HR roles
+        $hrPositions = [
+            'HR',
+            'Quality Assurance',
+            'Japanese',
+            'Nurse',
+            'Junior Accountant',
+        ];
+
+        // Operations roles
+        $operationsPositions = [
+            'Software Engineer',
+            'Batch Monitoring',
+            'Workplace',
+            'Infrastructure',
+        ];
+
+        // Check management first
+        if (in_array($position, $managementPositions)) {
+            return 'management';
+        }
+
+        // Check HR
+        if (in_array($position, $hrPositions)) {
+            return 'hr';
+        }
+
+        // Check operations
+        if (in_array($position, $operationsPositions)) {
+            return 'operation';
+        }
+
+        // Default to operations if position not found
+        return 'operation';
+    }
+    /**
      * Run the database seeds.
      */
     public function run(): void
@@ -113,6 +161,9 @@ class EmployeeImportSeeder extends Seeder
                 
                 $existingUser = User::where('email', $email)->first();
                 
+                $position = $employee['Position'];
+                $role = $this->getRoleFromPosition($position);
+
                 if (!$existingUser) {
                     User::create([
                         'first_name' => $firstName,
@@ -120,9 +171,10 @@ class EmployeeImportSeeder extends Seeder
                         'last_name' => $lastName,
                         'name' => $fullName,
                         'email' => $email,
+                        'position' => $position,
+                        'role' => $role,
                         'immediate_supervisor' => $employee['Immediate Supervisor'],
                         'hire_date' => $hireDate,
-                        'role' => $employee['Position'],
                     ]);
                     $imported++;
                 } else {
@@ -132,9 +184,10 @@ class EmployeeImportSeeder extends Seeder
                         'last_name' => $lastName,
                         'name' => $fullName,
                         'email' => $email,
+                        'position' => $position,
+                        'role' => $role,
                         'immediate_supervisor' => $employee['Immediate Supervisor'],
                         'hire_date' => $hireDate,
-                        'role' => $employee['Position'],
                     ]);
                     $updated++;
                 }

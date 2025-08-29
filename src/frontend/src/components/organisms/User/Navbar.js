@@ -17,12 +17,14 @@ import LanguageSelect from 'components/atoms/LanguageSelect';
 import MenuLinks from 'components/atoms/MenuLinks';
 import AvatarNavDropdown from 'components/molecules/AvatarNavDropdown';
 import NotificationIcon from 'components/molecules/NotificationIcon';
+import useWebSocket from '../../../hooks/useWebSocket';
 
 function Navbar(props) {
   const { user = null } = props;
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [anchorMobileNav, setAnchorMobileNav] = useState(null);
+  useWebSocket();
 
   const menus = [
     { label: t('menu.about'), url: '/about' },

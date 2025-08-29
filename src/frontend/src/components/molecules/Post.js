@@ -1,15 +1,28 @@
+import { yupResolver } from '@hookform/resolvers/yup';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useCategories } from 'services/categories.service';
+import ChatService from 'services/chat.service';
+import {
+  useComments,
+  useCreateComment,
+  useDeleteComment,
+  useUpdateComment,
+} from 'services/comment.service';
+import { useDeletePost, useFlagPost, useUpdatePost, useUpvotePost } from 'services/post.service';
+import { postSchema } from 'validations/post';
 import {
   Chat as ChatIcon,
   Comment,
+  Delete,
+  Edit,
   Flag,
   MoreVert,
   Reply,
-  Share,
   ThumbUp,
-  ThumbUpOutlined,
   Visibility,
 } from '@mui/icons-material';
 import {
@@ -34,69 +47,51 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import DeleteConfirmDialog from './DeleteConfirmDialog';
 
 const Post = ({ post }) => {
   const navigate = useNavigate();
+  const currentUser = useSelector((state) => state.profile.user);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
+  const [replyTexts, setReplyTexts] = useState({});
+  const [editingComment, setEditingComment] = useState(null);
+  const [editingReply, setEditingReply] = useState(null);
+  const [editTexts, setEditTexts] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { categories } = useCategories();
 
-  const mockPost = post || {
-    id: 1,
-    title: 'New Office Policy Implementation',
-    content:
-      'I think the new office policy regarding remote work is great, but I have some concerns about the implementation timeline. Has anyone else noticed that the transition period might be too short?',
-    author: 'Anonymous Employee',
-    authorInitial: 'A',
-    category: 'Policy',
-    upvotes: 127,
-    downvotes: 12,
-    views: 456,
-    comments: 23,
-    isUpvoted: false,
-    isDownvoted: false,
-    createdAt: '2 hours ago',
-    tags: ['remote-work', 'policy', 'implementation'],
-    commentsList: [
-      {
-        id: 1,
-        author: 'Anonymous',
-        authorInitial: 'A',
-        content: 'I agree with the timeline concern. We need more time to adjust our workflows.',
-        upvotes: 15,
-        createdAt: '1 hour ago',
-        replies: [
-          {
-            id: 11,
-            author: 'Anonymous',
-            authorInitial: 'A',
-            content: 'Exactly! At least 3 months would be reasonable.',
-            upvotes: 8,
-            createdAt: '30 min ago',
-          },
-        ],
-      },
-      {
-        id: 2,
-        author: 'Anonymous',
-        authorInitial: 'A',
-        content: 'The policy itself is good, but the communication could be better.',
-        upvotes: 12,
-        createdAt: '45 min ago',
-        replies: [],
-      },
-    ],
-  };
+  const { comments, isLoading: isLoadingComments } = useComments(post.id);
 
-  const handleUpvote = () => {
-    // TODO: Implement upvote logic
-    console.log('Upvoted post:', mockPost.id);
-  };
+  const editForm = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(postSchema),
+    defaultValues: {
+      title: post.title,
+      body: post.body,
+      category_id: post.category.id,
+    },
+  });
 
-  const handleDownvote = () => {
-    // TODO: Implement downvote logic
-    console.log('Downvoted post:', mockPost.id);
+  const {
+    handleSubmit: handleEditSubmit,
+    register: registerEdit,
+    setValue: setEditValue,
+    watch: watchEdit,
+    formState: { errors: editErrors },
+  } = editForm;
+
+  const handleUpvote = async () => {
+    try {
+      await useUpvotePost(post.id);
+    } catch (error) {
+      console.error('Error upvoting post:', error);
+    }
   };
 
   const handleComment = () => {
@@ -104,27 +99,46 @@ const Post = ({ post }) => {
   };
 
   const handleReply = (commentId) => {
-    setReplyTo(commentId);
-    setCommentText('');
+    setReplyTo(replyTo === commentId ? null : commentId);
+    setReplyTexts((prev) => ({
+      ...prev,
+      [commentId]: '',
+    }));
   };
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (commentText.trim()) {
-      // TODO: Implement comment submission
-      console.log('Submitting comment:', commentText, 'Reply to:', replyTo);
-      setCommentText('');
-      setReplyTo(null);
+      try {
+        await useCreateComment(commentText, post.id, null);
+        setCommentText('');
+      } catch (error) {
+        console.error('Error creating comment:', error);
+      }
     }
   };
 
-  const handleShare = () => {
-    // TODO: Implement share functionality
-    console.log('Sharing post:', mockPost.id);
+  const handleSubmitReply = async (commentId) => {
+    const replyText = replyTexts[commentId];
+    if (replyText && replyText.trim()) {
+      try {
+        await useCreateComment(replyText, post.id, commentId);
+        setReplyTexts((prev) => ({
+          ...prev,
+          [commentId]: '',
+        }));
+        setReplyTo(null);
+      } catch (error) {
+        console.error('Error creating reply:', error);
+      }
+    }
   };
 
-  const handleReport = () => {
-    // TODO: Implement report functionality
-    console.log('Reporting post:', mockPost.id);
+  const handleReport = async () => {
+    try {
+      await useFlagPost(post.id);
+    } catch (error) {
+      console.error('Error flagging post:', error);
+    }
   };
 
   const handleMenuOpen = (event) => {
@@ -136,245 +150,554 @@ const Post = ({ post }) => {
   };
 
   const handleEdit = () => {
-    // TODO: Implement edit functionality
-    console.log('Editing post:', mockPost.id);
+    setIsEditing(true);
+    editForm.reset({
+      title: post.title,
+      body: post.body,
+      category_id: post.category.id,
+    });
     handleMenuClose();
   };
 
-  const handleDelete = () => {
-    // TODO: Implement delete functionality
-    console.log('Deleting post:', mockPost.id);
+  const handleSavePostEdit = async (data) => {
+    setIsUpdating(true);
+    try {
+      await useUpdatePost(post.id, data);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating post:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    editForm.reset({
+      title: post.title,
+      body: post.body,
+      category_id: post.category.id,
+    });
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
     handleMenuClose();
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    await useDeleteComment(commentId, post.id);
+  };
+
+  const handleDeleteReply = async (replyId) => {
+    await useDeleteComment(replyId, post.id);
+  };
+
+  const handleEditComment = (commentId, currentText) => {
+    setEditingComment(editingComment === commentId ? null : commentId);
+    setEditTexts((prev) => ({
+      ...prev,
+      [commentId]: currentText,
+    }));
+  };
+
+  const handleEditReply = (replyId, currentText) => {
+    setEditingReply(editingReply === replyId ? null : replyId);
+    setEditTexts((prev) => ({
+      ...prev,
+      [replyId]: currentText,
+    }));
+  };
+
+  const handleSaveCommentEdit = async (itemId, isReply = false) => {
+    const editText = editTexts[itemId];
+    if (editText && editText.trim()) {
+      try {
+        await useUpdateComment(itemId, { body: editText }, post.id);
+        if (isReply) {
+          setEditingReply(null);
+        } else {
+          setEditingComment(null);
+        }
+        setEditTexts((prev) => ({
+          ...prev,
+          [itemId]: '',
+        }));
+      } catch (error) {
+        console.error('Error updating comment:', error);
+      }
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await useDeletePost(post.id);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteDialogClose = () => {
+    if (!isDeleting) {
+      setDeleteDialogOpen(false);
+    }
   };
 
   return (
-    <Card sx={{ mb: 3, boxShadow: 2 }}>
-      <CardHeader
-        avatar={
-          <Avatar sx={{ bgcolor: 'primary.main' }} aria-label="author">
-            {mockPost.authorInitial}
-          </Avatar>
-        }
-        action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              {mockPost.createdAt}
-            </Typography>
-            <IconButton aria-label="report" onClick={handleReport}>
-              <Flag fontSize="small" />
-            </IconButton>
-            <IconButton aria-label="more options" onClick={handleMenuOpen}>
-              <MoreVert />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-            >
-              <MenuItem onClick={handleEdit}>Edit</MenuItem>
-              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-                Delete
-              </MenuItem>
-            </Menu>
-          </Box>
-        }
-        title={
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Typography variant="h6" fontWeight={600}>
-              {mockPost.title}
-            </Typography>
-            <Chip label={mockPost.category} size="small" color="primary" variant="outlined" />
-          </Box>
-        }
-        subheader={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              by {mockPost.author} • {mockPost.createdAt}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Visibility fontSize="small" color="action" />
+    <>
+      <Card sx={{ mb: 3, boxShadow: 2 }}>
+        <CardHeader
+          avatar={
+            <Avatar sx={{ bgcolor: 'primary.main' }} aria-label="author">
+              {post.user.avatar}
+            </Avatar>
+          }
+          action={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                {mockPost.views}
+                {post.created_at_human}
               </Typography>
-            </Box>
-          </Box>
-        }
-      />
-
-      <CardContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          {mockPost.content}
-        </Typography>
-
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {mockPost.tags.map((tag, index) => (
-            <Chip key={index} label={`#${tag}`} size="small" variant="outlined" />
-          ))}
-        </Box>
-      </CardContent>
-
-      <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title="Upvote">
-            <IconButton onClick={handleUpvote} color={mockPost.isUpvoted ? 'primary' : 'default'}>
-              <ThumbUp fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center' }}>
-            {mockPost.upvotes - mockPost.downvotes}
-          </Typography>
-          <Tooltip title="Downvote">
-            <IconButton onClick={handleDownvote} color={mockPost.isDownvoted ? 'error' : 'default'}>
-              <ThumbUpOutlined fontSize="small" sx={{ transform: 'rotate(180deg)' }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button startIcon={<Comment />} onClick={handleComment} size="small" variant="text">
-            {mockPost.comments} Comments
-          </Button>
-
-          <Tooltip title="Share">
-            <IconButton onClick={handleShare}>
-              <Share fontSize="small" />
-            </IconButton>
-          </Tooltip>
-
-          <Button
-            variant="outline"
-            size="small"
-            startIcon={<ChatIcon />}
-            onClick={() =>
-              navigate(
-                `/employee/chats?postId=${mockPost.id}&postTitle=${encodeURIComponent(
-                  mockPost.title
-                )}`
-              )
-            }
-          >
-            Chat
-          </Button>
-        </Box>
-      </CardActions>
-
-      {/* Comments Section */}
-      <Collapse in={showComments} timeout="auto" unmountOnExit>
-        <Divider />
-        <CardContent sx={{ pt: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Comments ({mockPost.comments})
-          </Typography>
-
-          {/* Add Comment */}
-          <Box sx={{ mb: 3 }}>
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
-              placeholder="Add a comment..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              variant="outlined"
-              size="small"
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={handleSubmitComment}
-                disabled={!commentText.trim()}
+              <IconButton aria-label="report" onClick={handleReport}>
+                <Flag fontSize="small" color={post.is_flagged ? 'error' : 'default'} />
+              </IconButton>
+              {currentUser && currentUser.username === post.user.username && (
+                <IconButton aria-label="more options" onClick={handleMenuOpen}>
+                  <MoreVert />
+                </IconButton>
+              )}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
               >
-                Post Comment
-              </Button>
+                <MenuItem onClick={handleEdit} disabled={isEditing}>
+                  Edit
+                </MenuItem>
+                <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+                  Delete
+                </MenuItem>
+              </Menu>
             </Box>
+          }
+          title={
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+            >
+              <Typography variant="h6" fontWeight={600}>
+                {isEditing ? 'Editing Post' : post.title}
+              </Typography>
+              <Chip label={post.category.name} size="small" color="primary" variant="outlined" />
+            </Box>
+          }
+          subheader={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                by {post.user.username} • {post.created_at_human}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Visibility fontSize="small" color="action" />
+                <Typography variant="caption" color="text.secondary">
+                  {post.views_count}
+                </Typography>
+              </Box>
+            </Box>
+          }
+        />
+
+        <CardContent>
+          {isEditing ? (
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Title"
+                {...registerEdit('title')}
+                variant="outlined"
+                size="small"
+                sx={{ mb: 2 }}
+                error={!!editErrors.title}
+                helperText={editErrors.title?.message}
+              />
+              <TextField
+                fullWidth
+                label="Content"
+                {...registerEdit('body')}
+                variant="outlined"
+                multiline
+                rows={4}
+                sx={{ mb: 2 }}
+                error={!!editErrors.body}
+                helperText={editErrors.body?.message}
+              />
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Category:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {categories &&
+                    categories.map((category) => {
+                      const selectedCategoryId = watchEdit('category_id');
+                      const isSelected = selectedCategoryId === category.id;
+                      const hasError = editErrors?.category_id && selectedCategoryId === 0;
+
+                      return (
+                        <Chip
+                          key={category.id}
+                          label={category.name}
+                          variant={isSelected ? 'filled' : 'outlined'}
+                          size="small"
+                          color={hasError ? 'error' : isSelected ? 'primary' : 'default'}
+                          onClick={() => {
+                            setEditValue('category_id', category.id);
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      );
+                    })}
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                <Button variant="outlined" onClick={handleCancelEdit} disabled={isUpdating}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleEditSubmit(handleSavePostEdit)}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? 'Saving...' : 'Save'}
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              {post.body}
+            </Typography>
+          )}
+        </CardContent>
+
+        <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Tooltip title="Upvote">
+              <IconButton onClick={handleUpvote} color={post.is_upvoted ? 'primary' : 'default'}>
+                <ThumbUp fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center' }}>
+              {post.upvotes_count}
+            </Typography>
           </Box>
 
-          {/* Comments List */}
-          <List sx={{ p: 0 }}>
-            {mockPost.commentsList?.map((comment) => (
-              <React.Fragment key={comment.id}>
-                <ListItem sx={{ px: 0, py: 1 }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
-                      {comment.authorInitial}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box>
-                        <Typography variant="body2" sx={{ mb: 0.5 }}>
-                          {comment.content}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            by {comment.author} • {comment.createdAt}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <IconButton size="small">
-                              <ThumbUp fontSize="small" />
-                            </IconButton>
-                            <Typography variant="caption">{comment.upvotes}</Typography>
-                            <Button
-                              size="small"
-                              startIcon={<Reply />}
-                              onClick={() => handleReply(comment.id)}
-                            >
-                              Reply
-                            </Button>
-                          </Box>
-                        </Box>
-                      </Box>
-                    }
-                  />
-                </ListItem>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button startIcon={<Comment />} onClick={handleComment} size="small" variant="text">
+              {post.comments_count} Comments
+            </Button>
 
-                {/* Replies */}
-                {comment.replies.map((reply) => (
-                  <ListItem key={reply.id} sx={{ px: 0, py: 1, pl: 4 }}>
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'grey.500', width: 28, height: 28 }}>
-                        {reply.authorInitial}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box>
-                          <Typography variant="body2" sx={{ mb: 0.5 }}>
-                            {reply.content}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              by {reply.author} • {reply.createdAt}
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <IconButton size="small">
-                                <ThumbUp fontSize="small" />
-                              </IconButton>
-                              <Typography variant="caption">{reply.upvotes}</Typography>
+            {currentUser && currentUser.role === 'hr' && (
+              <Button
+                variant="outline"
+                size="small"
+                startIcon={<ChatIcon />}
+                onClick={async () => {
+                  try {
+                    const employeeUserId = post.user.id;
+                    const existingChat = await ChatService.getChatByPostAndEmployee(
+                      post.id,
+                      employeeUserId
+                    );
+                    navigate(`/employee/chats?chatId=${existingChat.data.id}`);
+                  } catch (error) {
+                    if (error.response?.status === 404) {
+                      const newChat = await ChatService.createChat(post.id, post.user.id);
+                      navigate(`/employee/chats?chatId=${newChat.data.id}`);
+                    } else {
+                      console.error('Error handling chat:', error);
+                    }
+                  }
+                }}
+              >
+                Chat
+              </Button>
+            )}
+          </Box>
+        </CardActions>
+
+        <Collapse in={showComments} timeout="auto" unmountOnExit>
+          <Divider />
+          <CardContent sx={{ pt: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Comments ({post.comments_count})
+            </Typography>
+
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={2}
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                variant="outlined"
+                size="small"
+              />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSubmitComment}
+                  disabled={!commentText.trim()}
+                >
+                  Post Comment
+                </Button>
+              </Box>
+            </Box>
+
+            <List sx={{ p: 0 }}>
+              {isLoadingComments ? (
+                <Typography>Loading comments...</Typography>
+              ) : comments && comments.length > 0 ? (
+                comments.map((comment) => (
+                  <React.Fragment key={comment.id}>
+                    <ListItem sx={{ px: 0, py: 1 }}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
+                          {comment.user?.username?.charAt(0) || 'U'}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box>
+                            {editingComment === comment.id ? (
+                              <Box sx={{ mb: 1 }}>
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  rows={2}
+                                  value={editTexts[comment.id] || ''}
+                                  onChange={(e) =>
+                                    setEditTexts((prev) => ({
+                                      ...prev,
+                                      [comment.id]: e.target.value,
+                                    }))
+                                  }
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{ mb: 1 }}
+                                />
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                  <Button size="small" onClick={() => setEditingComment(null)}>
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => handleSaveCommentEdit(comment.id)}
+                                    disabled={!editTexts[comment.id]?.trim()}
+                                  >
+                                    Save
+                                  </Button>
+                                </Box>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                {comment.body}
+                              </Typography>
+                            )}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                by {comment.user?.username} • {comment.created_at_human}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <IconButton size="small">
+                                  <ThumbUp fontSize="small" />
+                                </IconButton>
+                                <Typography variant="caption">{comment.upvotes_count}</Typography>
+                                <Button
+                                  size="small"
+                                  startIcon={<Reply />}
+                                  onClick={() => handleReply(comment.id)}
+                                >
+                                  {replyTo === comment.id ? 'Cancel Reply' : 'Reply'}
+                                </Button>
+                                {currentUser && currentUser.username === comment.user?.username && (
+                                  <>
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => handleEditComment(comment.id, comment.body)}
+                                    >
+                                      <Edit fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                    >
+                                      <Delete fontSize="small" />
+                                    </IconButton>
+                                  </>
+                                )}
+                              </Box>
                             </Box>
                           </Box>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
+                        }
+                      />
+                    </ListItem>
 
-                <Divider />
-              </React.Fragment>
-            ))}
-          </List>
-        </CardContent>
-      </Collapse>
-    </Card>
+                    {replyTo === comment.id && (
+                      <Box sx={{ ml: 4, mb: 2 }}>
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={2}
+                          placeholder="Write your reply..."
+                          value={replyTexts[comment.id] || ''}
+                          onChange={(e) =>
+                            setReplyTexts((prev) => ({
+                              ...prev,
+                              [comment.id]: e.target.value,
+                            }))
+                          }
+                          variant="outlined"
+                          size="small"
+                          sx={{ mb: 1 }}
+                        />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                          <Button size="small" onClick={() => handleReply(comment.id)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleSubmitReply(comment.id)}
+                            disabled={!replyTexts[comment.id]?.trim()}
+                          >
+                            Post Reply
+                          </Button>
+                        </Box>
+                      </Box>
+                    )}
+
+                    {comment.replies &&
+                      comment.replies.length > 0 &&
+                      comment.replies.map((reply) => (
+                        <ListItem key={reply.id} sx={{ px: 0, py: 1, pl: 4 }}>
+                          <ListItemAvatar>
+                            <Avatar sx={{ bgcolor: 'grey.500', width: 28, height: 28 }}>
+                              {reply.user?.username?.charAt(0) || 'U'}
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <Box>
+                                {editingReply === reply.id ? (
+                                  <Box sx={{ mb: 1 }}>
+                                    <TextField
+                                      fullWidth
+                                      multiline
+                                      rows={2}
+                                      value={editTexts[reply.id] || ''}
+                                      onChange={(e) =>
+                                        setEditTexts((prev) => ({
+                                          ...prev,
+                                          [reply.id]: e.target.value,
+                                        }))
+                                      }
+                                      variant="outlined"
+                                      size="small"
+                                      sx={{ mb: 1 }}
+                                    />
+                                    <Box
+                                      sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}
+                                    >
+                                      <Button size="small" onClick={() => setEditingReply(null)}>
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={() => handleSaveCommentEdit(reply.id, true)}
+                                        disabled={!editTexts[reply.id]?.trim()}
+                                      >
+                                        Save
+                                      </Button>
+                                    </Box>
+                                  </Box>
+                                ) : (
+                                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                    {reply.body}
+                                  </Typography>
+                                )}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <Typography variant="caption" color="text.secondary">
+                                    by {reply.user?.username} • {reply.created_at_human}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton size="small">
+                                      <ThumbUp fontSize="small" />
+                                    </IconButton>
+                                    <Typography variant="caption">{reply.upvotes_count}</Typography>
+                                    {currentUser &&
+                                      currentUser.username === reply.user?.username && (
+                                        <>
+                                          <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => handleEditReply(reply.id, reply.body)}
+                                          >
+                                            <Edit fontSize="small" />
+                                          </IconButton>
+                                          <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleDeleteReply(reply.id)}
+                                          >
+                                            <Delete fontSize="small" />
+                                          </IconButton>
+                                        </>
+                                      )}
+                                  </Box>
+                                </Box>
+                              </Box>
+                            }
+                          />
+                        </ListItem>
+                      ))}
+
+                    <Divider />
+                  </React.Fragment>
+                ))
+              ) : (
+                <Typography color="text.secondary">
+                  No comments yet. Be the first to comment!
+                </Typography>
+              )}
+            </List>
+          </CardContent>
+        </Collapse>
+      </Card>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Post"
+        message={`Are you sure you want to delete <strong>${post.title}</strong> post? This action cannot be undone.`}
+        loading={isDeleting}
+      />
+    </>
   );
 };
 

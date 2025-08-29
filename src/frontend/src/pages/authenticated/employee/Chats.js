@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Send } from '@mui/icons-material';
 import {
+  Alert,
   Avatar,
   Box,
   Button,
+  CircularProgress,
   List,
   ListItem,
   ListItemAvatar,
@@ -12,182 +15,128 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import useWebSocket from '../../../hooks/useWebSocket';
+import ChatService from '../../../services/chat.service';
 
 const Chats = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [selectedChat, setSelectedChat] = useState(null);
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
 
-  // Handle URL parameters to auto-select conversation
+  const currentUser = useSelector((state) => state.profile.user);
+  useWebSocket();
+
+  const { chats, error: chatsError, isLoading: chatsLoading } = ChatService.useChats();
+  const {
+    messages,
+    error: messagesError,
+    isLoading: messagesLoading,
+  } = ChatService.useMessages(selectedChat?.id);
+
   useEffect(() => {
-    const postId = searchParams.get('postId');
-    const postTitle = searchParams.get('postTitle');
+    if (selectedChat?.id) {
+      const messageListener = ChatService.listenToMessages(selectedChat.id);
 
-    if (postId && postTitle) {
-      // Find existing conversation for this post
-      const existingChat = conversations.find((conv) => conv.postId === parseInt(postId));
-
-      if (existingChat) {
-        // Auto-select existing conversation
-        setSelectedChat(existingChat);
-      } else {
-        // Create new conversation for this post
-        const newChat = {
-          id: Date.now(),
-          postId: parseInt(postId),
-          postTitle: decodeURIComponent(postTitle),
-          postContent: 'Click "Chat" on any post to start a conversation about that feedback.',
-          participant: 'Anonymous Employee',
-          avatar: 'AE',
-          lastMessage: 'New conversation started',
-          timestamp: 'Just now',
-          unreadCount: 0,
-          messages: [
-            {
-              id: 1,
-              sender: 'hr',
-              username: 'HR Manager',
-              avatar: 'HR',
-              content: `Hi! I saw your feedback about "${decodeURIComponent(
-                postTitle
-              )}". I'd like to discuss this with you.`,
-              timestamp: 'Just now',
-            },
-          ],
-        };
-
-        // Add to conversations and select it
-        conversations.unshift(newChat);
-        setSelectedChat(newChat);
-      }
-
-      // Clear URL parameters
-      navigate('/employee/chats', { replace: true });
+      return () => {
+        messageListener.stopListening();
+      };
     }
-  }, [searchParams, navigate]);
+  }, [selectedChat?.id]);
 
-  // Mock conversations data
-  const conversations = [
-    {
-      id: 1,
-      postId: 1,
-      postTitle: 'New Office Policy Implementation',
-      postContent:
-        'I think the new office policy regarding remote work is great, but I have some concerns about the implementation timeline. Has anyone else noticed that the transition period might be too short?',
-      participant: 'Anonymous Employee',
-      avatar: 'AE',
-      lastMessage:
-        'We need better integration between our project management and communication tools.',
-      timestamp: '1:50 PM',
-      unreadCount: 2,
-      messages: [
-        {
-          id: 1,
-          sender: 'hr',
-          username: 'HR Manager',
-          avatar: 'HR',
-          content:
-            'Hi! I saw your feedback about the collaboration tools. What specific improvements would you like to see?',
-          timestamp: '1:45 PM',
-        },
-        {
-          id: 2,
-          sender: 'employee',
-          username: 'Anonymous Employee',
-          avatar: 'AE',
-          content:
-            'We need better integration between our project management and communication tools.',
-          timestamp: '1:50 PM',
-        },
-      ],
-    },
-    {
-      id: 2,
-      postId: 2,
-      postTitle: 'Team Building Event Ideas',
-      postContent:
-        "Looking for suggestions for our next team building event. We want something that everyone can participate in, whether they're remote or in-office. Any creative ideas?",
-      participant: 'Anonymous Employee',
-      avatar: 'AE',
-      lastMessage: 'I think we should consider a virtual escape room!',
-      timestamp: '3:20 PM',
-      unreadCount: 0,
-      messages: [
-        {
-          id: 1,
-          sender: 'hr',
-          username: 'HR Manager',
-          avatar: 'HR',
-          content:
-            'Thanks for the team building suggestions! What type of activities do you think would work best for our remote team?',
-          timestamp: '2:30 PM',
-        },
-        {
-          id: 2,
-          sender: 'employee',
-          username: 'Anonymous Employee',
-          avatar: 'AE',
-          content: 'I think we should consider a virtual escape room!',
-          timestamp: '3:20 PM',
-        },
-      ],
-    },
-    {
-      id: 3,
-      postId: 3,
-      postTitle: 'IT Support Process Improvements',
-      postContent:
-        'The current IT support process takes too long. I submitted a ticket 3 days ago and still no response. Anyone else experiencing this? We need a better system.',
-      participant: 'Anonymous Employee',
-      avatar: 'AE',
-      lastMessage: 'The response time has improved significantly.',
-      timestamp: 'Yesterday',
-      unreadCount: 1,
-      messages: [
-        {
-          id: 1,
-          sender: 'hr',
-          username: 'HR Manager',
-          avatar: 'HR',
-          content:
-            "I understand your concern about IT support response times. We're working on improving this process.",
-          timestamp: 'Yesterday',
-        },
-        {
-          id: 2,
-          sender: 'employee',
-          username: 'Anonymous Employee',
-          avatar: 'AE',
-          content: 'The response time has improved significantly.',
-          timestamp: 'Yesterday',
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const chatUpdateListener = ChatService.listenToChatUpdates(null, currentUser?.id);
+    const newChatListener = ChatService.listenToNewChats(null, currentUser?.id);
 
-  const handleSendMessage = () => {
-    if (!message.trim() || !selectedChat) return;
+    return () => {
+      chatUpdateListener.stopListening();
+      newChatListener.stopListening();
+    };
+  }, [currentUser?.id]);
 
-    const newMessage = {
-      id: Date.now(),
-      sender: 'hr',
-      username: 'HR Manager',
-      avatar: 'HR',
-      content: message,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  useEffect(() => {
+    const handleUrlParams = async () => {
+      const chatId = searchParams.get('chatId');
+      const postId = searchParams.get('postId');
+      const postTitle = searchParams.get('postTitle');
+      const postAuthorId = searchParams.get('postAuthorId');
+
+      if (chatId && !chatsLoading && !urlParamsProcessed) {
+        setUrlParamsProcessed(true);
+        const chat = chats.find((c) => c.id === parseInt(chatId));
+        if (chat) {
+          setSelectedChat(chat);
+          navigate('/employee/chats', { replace: true });
+        } else {
+          try {
+            const chatResponse = await ChatService.getChat(parseInt(chatId));
+            setSelectedChat(chatResponse.data);
+            navigate('/employee/chats', { replace: true });
+          } catch (error) {
+            console.error('Error fetching chat:', error);
+          }
+        }
+      } else if (postId && postTitle && !chatsLoading && !urlParamsProcessed) {
+        setUrlParamsProcessed(true);
+        handlePostChatRequest(parseInt(postId), postAuthorId ? parseInt(postAuthorId) : null);
+      }
     };
 
-    // Update the selected chat's messages
-    const updatedConversations = conversations.map((conv) =>
-      conv.id === selectedChat.id ? { ...conv, messages: [...conv.messages, newMessage] } : conv
-    );
+    handleUrlParams();
+  }, [searchParams, navigate, chatsLoading, currentUser?.id, chats]);
 
-    // Update the conversation in the list
-    const updatedSelectedChat = updatedConversations.find((conv) => conv.id === selectedChat.id);
-    setSelectedChat(updatedSelectedChat);
+  const handlePostChatRequest = async (postId, postAuthorId = null) => {
+    try {
+      setSending(true);
 
-    setMessage('');
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      let employeeUserId;
+      if (currentUser.role === 'hr') {
+        if (!postAuthorId) {
+          throw new Error('Post author ID is required for HR users');
+        }
+        employeeUserId = postAuthorId;
+      } else {
+        employeeUserId = currentUser.id;
+      }
+
+      try {
+        const existingChat = await ChatService.getChatByPostAndEmployee(postId, employeeUserId);
+        setSelectedChat(existingChat.data);
+        navigate('/employee/chats', { replace: true });
+      } catch (error) {
+        if (error.response?.status === 404) {
+          const newChat = await ChatService.createChat(postId, employeeUserId);
+          setSelectedChat(newChat.data);
+          navigate('/employee/chats', { replace: true });
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error handling post chat request:', error);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedChat) return;
+
+    try {
+      setSending(true);
+      await ChatService.sendMessage(selectedChat.id, message);
+      setMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -197,14 +146,13 @@ const Chats = () => {
     }
   };
 
-  const handleChatSelect = (conversation) => {
-    setSelectedChat(conversation);
+  const handleChatSelect = (chat) => {
+    setSelectedChat(chat);
     setMessage('');
   };
 
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 100px)', bgcolor: 'grey.50' }}>
-      {/* Sidebar - Conversations List */}
       <Box
         sx={{
           width: 380,
@@ -216,7 +164,6 @@ const Chats = () => {
           boxShadow: 1,
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             p: 3,
@@ -247,105 +194,131 @@ const Chats = () => {
             </Button>
           </Box>
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-            {conversations.length} active chats • Click &quot;Chat&quot; on any post to start a
-            conversation
+            {chats.length} active chats • Click &quot;Chat&quot; on any post to start a conversation
           </Typography>
         </Box>
 
-        {/* Conversations List */}
         <List sx={{ flex: 1, overflowY: 'auto', p: 0 }}>
-          {conversations.map((conversation) => (
-            <ListItem
-              key={conversation.id}
-              button
-              selected={selectedChat?.id === conversation.id}
-              onClick={() => handleChatSelect(conversation)}
-              sx={{
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                py: 2,
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.light',
-                  borderLeft: '4px solid',
-                  borderLeftColor: 'primary.main',
-                  '&:hover': {
+          {chatsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : chatsError ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Alert severity="error">Failed to load chats</Alert>
+            </Box>
+          ) : chats.length === 0 ? (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                No chats yet. Click &quot;Chat&quot; on any post to start a conversation.
+              </Typography>
+            </Box>
+          ) : (
+            chats.map((chat) => (
+              <ListItem
+                key={chat.id}
+                selected={selectedChat?.id === chat.id}
+                onClick={() => handleChatSelect(chat)}
+                sx={{
+                  cursor: 'pointer',
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  py: 2,
+                  '&.Mui-selected': {
                     backgroundColor: 'primary.light',
+                    borderLeft: '4px solid',
+                    borderLeftColor: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.light',
+                    },
                   },
-                },
-                '&:hover': {
-                  backgroundColor: 'grey.50',
-                },
-              }}
-            >
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
-                  {conversation.avatar}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {conversation.participant}
-                    </Typography>
-                    {conversation.unreadCount > 0 && (
-                      <Box
-                        sx={{
-                          bgcolor: 'primary.main',
-                          color: 'white',
-                          borderRadius: '50%',
-                          width: 20,
-                          height: 20,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem',
-                        }}
-                      >
-                        {conversation.unreadCount}
-                      </Box>
-                    )}
-                  </Box>
-                }
-                secondary={
-                  <Box>
+                  ...(selectedChat?.id === chat.id && {
+                    backgroundColor: 'grey.100',
+                    borderLeft: '4px solid',
+                    borderLeftColor: 'grey.400',
+                    fontWeight: 'bold',
+                    '&:hover': {
+                      backgroundColor: 'grey.100',
+                    },
+                  }),
+                  '&:hover': {
+                    backgroundColor: 'grey.50',
+                  },
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+                    {chat.other_participant?.name?.charAt(0) || 'U'}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {chat.other_participant?.name || 'Unknown User'}
+                      </Typography>
+                      {chat.unread_count > 0 && (
+                        <Box
+                          sx={{
+                            bgcolor: 'primary.main',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: 20,
+                            height: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          {chat.unread_count}
+                        </Box>
+                      )}
+                    </Box>
+                  }
+                  secondary={
                     <Typography
                       variant="body2"
                       color="text.secondary"
                       sx={{ mb: 0.5, fontWeight: 500 }}
                     >
-                      📝 {conversation.postTitle}
+                      📝 {chat.post?.title || 'Unknown Post'}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      💬 {conversation.lastMessage}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {conversation.timestamp}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </ListItem>
-          ))}
+                  }
+                />
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    💬 {chat.latest_message?.content || 'No messages yet'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {chat.last_message_at
+                      ? new Date(chat.last_message_at).toLocaleString()
+                      : 'No activity'}
+                  </Typography>
+                </Box>
+              </ListItem>
+            ))
+          )}
         </List>
       </Box>
 
-      {/* Main Chat Area */}
       <Box
         sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: 'white', boxShadow: 1 }}
       >
         {selectedChat ? (
           <>
-            {/* Chat Header */}
             <Box
               sx={{
                 borderBottom: '1px solid',
                 borderColor: 'divider',
               }}
             >
-              {/* Participant Info */}
               <Box
                 sx={{
                   p: 3,
@@ -360,11 +333,13 @@ const Chats = () => {
                 <Avatar
                   sx={{ bgcolor: 'secondary.main', width: 48, height: 48, fontSize: '1.1rem' }}
                 >
-                  {selectedChat.avatar}
+                  {selectedChat.other_participant?.avatar ||
+                    selectedChat.other_participant?.name?.charAt(0) ||
+                    'U'}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                    👤 {selectedChat.participant}
+                    👤 {selectedChat.other_participant?.name || 'Unknown User'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     💬 Chatting about their feedback
@@ -372,7 +347,6 @@ const Chats = () => {
                 </Box>
               </Box>
 
-              {/* Original Post Context */}
               <Box
                 sx={{
                   p: 3,
@@ -385,88 +359,107 @@ const Chats = () => {
                   variant="subtitle2"
                   sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}
                 >
-                  📝 Original Feedback: {selectedChat.postTitle}
+                  📝 Original Feedback: {selectedChat.post?.title || 'Unknown Post'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  {selectedChat.postContent}
+                  {selectedChat.post?.content || 'No content available'}
                 </Typography>
               </Box>
             </Box>
 
-            {/* Messages Area */}
             <Box sx={{ flex: 1, p: 2, overflowY: 'auto' }}>
-              {selectedChat.messages.map((msg) => (
-                <Box
-                  key={msg.id}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: msg.sender === 'hr' ? 'flex-end' : 'flex-start',
-                    mb: 2,
-                    gap: 1,
-                  }}
-                >
-                  {msg.sender === 'employee' && (
-                    <Avatar
-                      sx={{
-                        bgcolor: 'secondary.main',
-                        width: 32,
-                        height: 32,
-                        fontSize: '0.75rem',
-                      }}
-                    >
-                      {msg.avatar}
-                    </Avatar>
-                  )}
-                  <Box
-                    sx={{
-                      maxWidth: '70%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
-                    {msg.sender === 'employee' && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
-                        {msg.username}
-                      </Typography>
-                    )}
+              {messagesLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              ) : messagesError ? (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Alert severity="error">Failed to load messages</Alert>
+                </Box>
+              ) : messages.length === 0 ? (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No messages yet. Start the conversation!
+                  </Typography>
+                </Box>
+              ) : (
+                messages.map((msg) => {
+                  const isCurrentUserMessage = msg.sender_id === currentUser.id;
+                  return (
                     <Box
+                      key={msg.id}
                       sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        backgroundColor: msg.sender === 'hr' ? 'primary.main' : 'grey.100',
-                        color: msg.sender === 'hr' ? 'white' : 'text.primary',
+                        display: 'flex',
+                        justifyContent: isCurrentUserMessage ? 'flex-end' : 'flex-start',
+                        mb: 2,
+                        gap: 1,
                       }}
                     >
-                      <Typography variant="body2" sx={{ mb: 0.5 }}>
-                        {msg.content}
-                      </Typography>
-                      <Typography
-                        variant="caption"
+                      {!isCurrentUserMessage && (
+                        <Avatar
+                          sx={{
+                            bgcolor: 'secondary.main',
+                            width: 32,
+                            height: 32,
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          {msg.sender_display_name?.charAt(0) || 'U'}
+                        </Avatar>
+                      )}
+                      <Box
                         sx={{
-                          color: msg.sender === 'hr' ? 'rgba(255,255,255,0.7)' : 'text.secondary',
+                          maxWidth: '70%',
+                          display: 'flex',
+                          flexDirection: 'column',
                         }}
                       >
-                        {msg.timestamp}
-                      </Typography>
+                        {!isCurrentUserMessage && (
+                          <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
+                            {msg.sender_display_name}
+                          </Typography>
+                        )}
+                        <Box
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            backgroundColor: isCurrentUserMessage ? 'primary.main' : 'grey.100',
+                            color: isCurrentUserMessage ? 'white' : 'text.primary',
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            {msg.content}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: isCurrentUserMessage
+                                ? 'rgba(255,255,255,0.7)'
+                                : 'text.secondary',
+                            }}
+                          >
+                            {new Date(msg.created_at).toLocaleString()}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      {isCurrentUserMessage && (
+                        <Avatar
+                          sx={{
+                            bgcolor: 'primary.main',
+                            width: 32,
+                            height: 32,
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          {msg.sender_display_name?.charAt(0) || 'H'}
+                        </Avatar>
+                      )}
                     </Box>
-                  </Box>
-                  {msg.sender === 'hr' && (
-                    <Avatar
-                      sx={{
-                        bgcolor: 'primary.main',
-                        width: 32,
-                        height: 32,
-                        fontSize: '0.75rem',
-                      }}
-                    >
-                      {msg.avatar}
-                    </Avatar>
-                  )}
-                </Box>
-              ))}
+                  );
+                })
+              )}
             </Box>
 
-            {/* Input Area */}
             <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
@@ -477,20 +470,20 @@ const Chats = () => {
                   onKeyPress={handleKeyPress}
                   variant="outlined"
                   size="small"
+                  disabled={sending}
                 />
                 <Button
                   variant="contained"
                   onClick={handleSendMessage}
-                  disabled={!message.trim()}
-                  startIcon={<Send />}
+                  disabled={!message.trim() || sending}
+                  startIcon={sending ? <CircularProgress size={20} /> : <Send />}
                 >
-                  Send
+                  {sending ? 'Sending...' : 'Send'}
                 </Button>
               </Box>
             </Box>
           </>
         ) : (
-          /* No Chat Selected */
           <Box
             sx={{
               flex: 1,

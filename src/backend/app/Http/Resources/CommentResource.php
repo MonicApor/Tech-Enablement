@@ -24,7 +24,7 @@ class CommentResource extends JsonResource
             'parent_id' => $this->parent_id,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => new NewUserResource($this->whenLoaded('user')),
             'replies' => CommentResource::collection($this->whenLoaded('replies')),
             'created_at_human' => $this->created_at->diffForHumans(),
         ];

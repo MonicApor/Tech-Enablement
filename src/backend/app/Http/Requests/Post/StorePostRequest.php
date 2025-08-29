@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Post;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePostRequest extends FormRequest
 {
@@ -22,9 +23,23 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'body' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                'min:2',
+                Rule::unique('posts')->where(function ($query) {
+                    return $query->where('user_id', auth()->user()->id);
+                }),
+            ],
+            'body' => [
+                'required',
+                'string',
+            ],
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
         ];
     }
 
@@ -35,7 +50,7 @@ class StorePostRequest extends FormRequest
             'title.max' => 'The title must be less than 255 characters.',
             'body.required' => 'The body is required.',
             'body.max' => 'The body must be less than 1000 characters.',
-            'body.min' => 'The body must be at least 10 characters.',
+            'body.min' => 'The body must be at least 2 characters.',
             'category_id.required' => 'The category is required.',
             'category_id.exists' => 'The category does not exist.',
         ];

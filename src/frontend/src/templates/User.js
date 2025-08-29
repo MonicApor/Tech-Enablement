@@ -22,7 +22,7 @@ export default function User() {
 
   const fetchProfile = async () => {
     try {
-      const response = await api.get('/auth/user');
+      const response = await api.get('/auth/me');
       const userData = response.data.user;
 
       if (userData) {

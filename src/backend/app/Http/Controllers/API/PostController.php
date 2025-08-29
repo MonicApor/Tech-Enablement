@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Post\StorePostRequest;
+use App\Http\Requests\Post\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -37,8 +38,7 @@ class PostController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Post::with(['user', 'category', 'comments'])
-            ->active()
-            ->orderBy('created_at', 'desc');
+            ->active();
 
         // filter by category
         if ($request->has('category_id')) {
@@ -52,9 +52,8 @@ class PostController extends Controller
         }
 
         //sorting
-        if ($request->has('sort')) {
-            $query->orderBy('created_at', $request->sort);
-        }
+        $sort = $request->input('sort', 'desc');
+        $query->orderBy('created_at', $sort);
 
         //pagination
         $perPage = $request->input('per_page', 10);
@@ -89,7 +88,12 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request): JsonResponse
     {
-        $post = Post::create($request->validated());
+        $this->authorize('create', Post::class);
+        
+        $post = Post::create([
+            ...$request->validated(),
+            'user_id' => auth()->id(),
+        ]);
         return response()->json([
             'message' => 'Post created successfully',
             'data' => new PostResource($post->load('user', 'category')),
@@ -137,6 +141,8 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post): JsonResponse
     {
+        $this->authorize('update', $post);
+        
         $post->update($request->validated());
         return response()->json([
             'message' => 'Post updated successfully',
@@ -159,14 +165,9 @@ class PostController extends Controller
      *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/Error"))
      * )
      */
-    public function destroy(string $id)
+    public function destroy(Post $post)
     {
-        //check if user owns the post
-        if(auth()->user()->id !== $post->user_id) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
+        $this->authorize('delete', $post);
 
         $post->delete();
         return response()->json([
@@ -190,9 +191,10 @@ class PostController extends Controller
      */
     public function flag(Post $post): JsonResponse
     {
-        $post->flag();
+        $isFlagged = $post->toggleFlag();
         return response()->json([
-            'message' => 'Post flagged successfully',
+            'message' => $isFlagged ? 'Post flagged successfully' : 'Post unflagged successfully',
+            'is_flagged' => $isFlagged,
         ]);
     }
 
@@ -234,37 +236,13 @@ class PostController extends Controller
      */
     public function upvote(Post $post): JsonResponse
     {
-        $post->upvote();
+        
+        $isUpvoted = $post->upvote();
+        
         return response()->json([
-            'message' => 'Post upvoted successfully',
-        ]);
-    }
-
-    /**
-     * Get posts by category
-     * 
-     * @OA\Get(
-     *     path="/api/post/category/{categoryId}",
-     *     summary="Get posts by category",
-     *     tags={"Posts"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(name="categoryId", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="per_page", in="query", @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Post")))),
-     *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/Error"))
-     * )
-     */
-    public function getPostsByCategory(Request $request, $categoryId): JsonResponse
-    {
-        $posts = Post::with(['user', 'category', 'comments'])
-            ->active()
-            ->category($categoryId)
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 10), ['*'], 'page', $request->input('page', 1));
-        return response()->json([
-            'data' => PostResource::collection($posts),
+            'message' => $isUpvoted ? 'Post upvoted successfully' : 'Post upvote removed successfully',
+            'is_upvoted' => $isUpvoted,
+            'upvotes_count' => $post->fresh()->upvotes_count,
         ]);
     }
 }

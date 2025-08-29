@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <button onclick="sendTestMessage()">Send Test Message</button>
+    <div id="messages"></div>
+
+    <script>
+        // Initialize Pusher
+        const pusher = new Pusher('DRcpFZv3w5a4', {
+            cluster: 'mt1',
+            wsHost: 'localhost',
+            wsPort: 6001,
+            forceTLS: false,
+            disableStats: true,
+        });
+
+        // Subscribe to the test channel
+        const channel = pusher.subscribe('test-channel');
+
+        // Listen for messages
+        channel.bind('App\\Events\\TestMessage', function(data) {
+            console.log('Received message:', data);
+            document.getElementById('messages').innerHTML += 
+                '<p><strong>' + new Date().toLocaleTimeString() + ':</strong> ' + 
+                data.message + '</p>';
+        });
+
+        // Function to send test message
+        function sendTestMessage() {
+            fetch('/api/test-websocket', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Message sent:', data);
+                document.getElementById('messages').innerHTML += 
+                    '<p style="color: green;"><strong>' + new Date().toLocaleTimeString() + ':</strong> Message sent!</p>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('messages').innerHTML += 
+                    '<p style="color: red;"><strong>' + new Date().toLocaleTimeString() + ':</strong> Error sending message</p>';
+            });
+        }
+    </script>
+</body>
+</html>

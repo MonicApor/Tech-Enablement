@@ -30,6 +30,7 @@ class User extends Authenticatable
         'microsoft_tenant_id',
         'user_type',
         'role',
+        'position',
         'immediate_supervisor',
         'hire_date',
         'password',
@@ -108,6 +109,15 @@ class User extends Authenticatable
     public function activationToken()
     {
         return $this->hasOne(ActivationToken::class)->latest();
+    }
+
+    /**
+     * Get the chats where this user is a participant.
+     */
+    public function chats()
+    {
+        return Chat::where('employee_user_id', $this->id)
+                    ->orWhere('hr_user_id', $this->id);
     }
 
     /**
