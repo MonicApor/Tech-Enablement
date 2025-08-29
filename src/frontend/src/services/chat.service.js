@@ -162,71 +162,79 @@ const ChatService = {
 
   listenToMessages: (chatId, callback) => {
     if (!window.Echo) {
-      console.warn('Echo not available for listening to messages');
       return { stopListening: () => {} };
     }
+
     const channel = window.Echo.private(`chat.${chatId}`);
 
-    channel.listen('message.sent', (e) => {
-      const messageKey = `/chats/${chatId}/messages`;
-      mutate(
-        messageKey,
-        (currentMessages) => {
-          if (!currentMessages) return currentMessages;
-          const messageExists = currentMessages.data.some((msg) => msg.id === e.message.id);
-          if (messageExists) return currentMessages;
+    if (channel.subscription) {
+      channel.subscription.bind_global((eventName, data) => {
+        if (eventName === 'message.sent' && data) {
+          let messageData = data.message || data;
 
-          return {
-            ...currentMessages,
-            data: [...currentMessages.data, e.message],
-          };
-        },
-        false
-      );
+          if (!messageData) return;
 
-      const chatKey = `/chats/${chatId}`;
-      mutate(
-        chatKey,
-        (currentChat) => {
-          if (!currentChat) return currentChat;
-          return {
-            ...currentChat,
-            data: {
-              ...currentChat.data,
-              last_message_at: e.message.created_at,
-              latest_message: e.message,
+          const messageKey = `/chats/${chatId}/messages`;
+          mutate(
+            messageKey,
+            (currentMessages) => {
+              if (!currentMessages) return currentMessages;
+              const messageExists = currentMessages.data.some((msg) => msg.id === messageData.id);
+              if (messageExists) return currentMessages;
+
+              return {
+                ...currentMessages,
+                data: [...currentMessages.data, messageData],
+              };
             },
-          };
-        },
-        false
-      );
-
-      mutate(
-        '/chats',
-        (currentChats) => {
-          if (!currentChats) return currentChats;
-          const updatedChats = currentChats.data.map((chat) =>
-            chat.id === chatId
-              ? {
-                  ...chat,
-                  last_message_at: e.message.created_at,
-                  latest_message: e.message,
-                  unread_count: chat.unread_count + 1,
-                }
-              : chat
+            false
           );
-          const updatedChat = updatedChats.find((chat) => chat.id === chatId);
-          const otherChats = updatedChats.filter((chat) => chat.id !== chatId);
-          return {
-            ...currentChats,
-            data: [updatedChat, ...otherChats],
-          };
-        },
-        false
-      );
 
-      if (callback) callback(e.message);
-    });
+          const chatKey = `/chats/${chatId}`;
+          mutate(
+            chatKey,
+            (currentChat) => {
+              if (!currentChat) return currentChat;
+              return {
+                ...currentChat,
+                data: {
+                  ...currentChat.data,
+                  last_message_at: messageData.created_at,
+                  latest_message: messageData,
+                },
+              };
+            },
+            false
+          );
+
+          mutate(
+            '/chats',
+            (currentChats) => {
+              if (!currentChats) return currentChats;
+              const updatedChats = currentChats.data.map((chat) =>
+                chat.id === chatId
+                  ? {
+                      ...chat,
+                      last_message_at: messageData.created_at,
+                      latest_message: messageData,
+                      unread_count: chat.unread_count + 1,
+                    }
+                  : chat
+              );
+              const updatedChat = updatedChats.find((chat) => chat.id === chatId);
+              const otherChats = updatedChats.filter((chat) => chat.id !== chatId);
+              return {
+                ...currentChats,
+                data: [updatedChat, ...otherChats],
+              };
+            },
+            false
+          );
+
+          if (callback) callback(messageData);
+        }
+      });
+    }
 
     return {
       stopListening: () => {

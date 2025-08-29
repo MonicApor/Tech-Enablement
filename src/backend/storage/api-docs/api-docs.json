@@ -24,6 +24,114 @@
         }
     ],
     "paths": {
+        "/api/broadcasting/auth": {
+            "post": {
+                "tags": [
+                    "Broadcasting"
+                ],
+                "summary": "Authenticate WebSocket channel subscription",
+                "description": "Authenticates a user for WebSocket channel subscription. This endpoint is used by Laravel Echo to authorize private channel subscriptions.",
+                "operationId": "ce6fbccfa2696401d7f6dda2307b0266",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "channel_name",
+                                    "socket_id"
+                                ],
+                                "properties": {
+                                    "channel_name": {
+                                        "description": "The name of the channel to subscribe to",
+                                        "type": "string",
+                                        "example": "private-chat.14"
+                                    },
+                                    "socket_id": {
+                                        "description": "The socket ID from the WebSocket connection",
+                                        "type": "string",
+                                        "example": "123456.789012"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Authentication successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "auth": {
+                                            "description": "The authentication signature",
+                                            "type": "string",
+                                            "example": "DRcpFZv3w5a4:123456.789012:abcdef1234567890"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Missing channel_name or socket_id"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid or missing token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - user not authorized for this channel",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -650,6 +758,62 @@
                                     "properties": {
                                         "message": {
                                             "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/chats/by-post-employee": {
+            "get": {
+                "tags": [
+                    "Chats"
+                ],
+                "summary": "Get a chat by post ID and employee user ID",
+                "description": "Get chat by post and employee.",
+                "operationId": "ccf6766beb9918488029caca67e42380",
+                "parameters": [
+                    {
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "employee_user_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -3007,6 +3171,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Broadcasting",
+            "description": "WebSocket broadcasting authentication endpoints"
+        },
         {
             "name": "Categories",
             "description": "Category management endpoints"

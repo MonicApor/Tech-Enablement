@@ -23,8 +23,7 @@ class BroadcastServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton('broadcast', function ($app) {
-            return $app->make(\Illuminate\Broadcasting\BroadcastManager::class);
-        });
+        // Laravel automatically registers the broadcast manager
+        // No need to manually register it
     }
 }

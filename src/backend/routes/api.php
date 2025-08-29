@@ -68,10 +68,7 @@ Route::middleware('auth:api')->group(function () {
 
 Route::get('/', [HomeController::class, '__invoke']);
 
-// Laravel's built-in broadcasting routes are handled by BroadcastServiceProvider
+// Custom broadcasting authentication route
+Route::post('/broadcasting/auth', [BroadcastingController::class, 'authenticate'])->middleware('auth:api');
 
-// Test WebSocket route
-Route::post('/test-websocket', function () {
-    event(new \App\Events\TestMessage('Test message from API!'));
-    return response()->json(['message' => 'Event broadcasted successfully']);
-});
+

@@ -17,7 +17,7 @@ const createEcho = () => {
     cluster: process.env.REACT_APP_WEBSOCKET_CLUSTER || 'mt1',
     wsHost: process.env.REACT_APP_WEBSOCKET_HOST || 'localhost',
     wsPort: 6001,
-    authEndpoint: `${process.env.REACT_APP_API_URL}/broadcasting/auth`,
+    authEndpoint: `http://localhost:8000/api/broadcasting/auth`,
     auth: {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -31,10 +31,8 @@ const createEcho = () => {
   });
 };
 
-// Create Echo instance
 const echo = createEcho();
 
-// Export a function to get or recreate Echo instance
 export const getEcho = () => {
   if (!echo) {
     return createEcho();

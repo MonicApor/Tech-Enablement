@@ -13,7 +13,6 @@ const useWebSocket = () => {
       const token = localStorage.getItem('access_token');
 
       if (!token) {
-        console.warn('No access token found for WebSocket connection');
         return;
       }
 
@@ -27,14 +26,15 @@ const useWebSocket = () => {
         cluster: process.env.REACT_APP_WEBSOCKET_CLUSTER || 'mt1',
         wsHost: process.env.REACT_APP_WEBSOCKET_HOST || 'localhost',
         wsPort: 6001,
-        authEndpoint: `${process.env.REACT_APP_API_URL}/broadcasting/auth`,
+        wssPort: 6001,
+        authEndpoint: `http://localhost:8000/api/broadcasting/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
         forceTLS: false,
-        encrypted: true,
+        encrypted: false,
         enableLogging: true,
         disableStats: true,
         enabledTransports: ['ws', 'wss'],
@@ -45,12 +45,10 @@ const useWebSocket = () => {
       });
 
       window.Echo = echo;
-      console.log('WebSocket connection established');
     } else if (!user || !user.id) {
       if (window.Echo) {
         window.Echo.disconnect();
         window.Echo = null;
-        console.log('WebSocket connection disconnected');
       }
     }
 
