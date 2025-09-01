@@ -243,6 +243,27 @@ class Post extends Model
         return $this->allComments()->count();
     }
 
+    public function scopeTrending($query)
+    {
+        return $query->withCount([
+            'comments as total_comments_count',
+            'comments as replies_count' => function ($q) {
+                $q->whereNotNull('parent_id');
+            },
+            'comments as top_level_comments_count' => function ($q) {
+                $q->whereNull('parent_id');
+            }
+        ])
+        ->where('flaged_at', null)
+        ->where('resolved_at', null)
+        ->where('status', 'active')
+        ->orderByRaw('
+            (upvote_count + total_comments_count + replies_count) / 
+            (TIMESTAMPDIFF(HOUR, created_at, NOW()) + 1) DESC
+        ')
+        ->with('category');
+    }
+
     /**
      * Override the delete method to handle soft deletes for related chats and messages
      */

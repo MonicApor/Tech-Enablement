@@ -1,25 +1,67 @@
 import React from 'react';
-import { AccessTime } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { useRecentActivities, useTrendingTopics } from 'services/post.service';
+import { AccessTime, Article, Category, Comment, Flag, Reply, ThumbUp } from '@mui/icons-material';
 import TrendingUp from '@mui/icons-material/TrendingUp';
 import { Box, Card, CardContent, CardHeader, Chip, Typography } from '@mui/material';
 
 function Rightbar() {
-  const trendingTopics = [
-    { topic: 'Remote Work', posts: 24 },
-    { topic: 'Team Communication', posts: 18 },
-    { topic: 'Office Environment', posts: 12 },
-    { topic: 'Professional Development', posts: 9 },
-  ];
+  const { trendingTopics, isLoading, error } = useTrendingTopics();
+  const { recentActivities } = useRecentActivities();
 
-  const recentActivity = [
-    { action: 'New feedback on Meeting Culture', time: '5 min ago' },
-    { action: 'Policy update discussion', time: '1 hour ago' },
-    { action: 'Weekly feedback summary', time: '2 hours ago' },
-  ];
+  const navigate = useNavigate();
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'Post':
+        return <Article sx={{ fontSize: 16, color: 'primary.main' }} />;
+      case 'Comment':
+        return <Comment sx={{ fontSize: 16, color: 'info.main' }} />;
+      case 'HrReply':
+        return <Reply sx={{ fontSize: 16, color: 'success.main' }} />;
+      case 'FlaggedPost':
+        return <Flag sx={{ fontSize: 16, color: 'error.main' }} />;
+      default:
+        return <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />;
+    }
+  };
+
+  const getActivityTitle = (activity) => {
+    switch (activity.type) {
+      case 'Post':
+        return activity.title;
+      case 'Comment':
+        return `Commented: ${activity.body?.substring(0, 50)}${
+          activity.body?.length > 50 ? '...' : ''
+        }`;
+      case 'HrReply':
+        return `HR Reply: ${activity.body?.substring(0, 50)}${
+          activity.body?.length > 50 ? '...' : ''
+        }`;
+      case 'FlaggedPost':
+        return `Flagged: ${activity.title}`;
+      default:
+        return activity.body || 'Unknown activity';
+    }
+  };
+
+  const handleActivityClick = (activity) => {
+    switch (activity.type) {
+      case 'Post':
+      case 'FlaggedPost':
+        navigate(`/posts/${activity.id}`);
+        break;
+      case 'Comment':
+      case 'HrReply':
+        navigate(`/posts/${activity.post_id}`);
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Trending Topics */}
       <Card sx={{ boxShadow: 2, borderRadius: 1 }}>
         <CardHeader
           title={
@@ -31,22 +73,93 @@ function Rightbar() {
         />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {trendingTopics.map((topic, index) => (
-              <Box
-                key={index}
-                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {topic.topic}
-                </Typography>
-                <Chip label={topic.posts} size="small" variant="outlined" />
-              </Box>
-            ))}
+            {isLoading ? (
+              <Typography variant="body2" color="text.secondary">
+                Loading trending topics...
+              </Typography>
+            ) : error ? (
+              <Typography variant="body2" color="error">
+                Error loading trending topics
+              </Typography>
+            ) : trendingTopics && trendingTopics.length > 0 ? (
+              trendingTopics.map((topic, index) => (
+                <Box
+                  key={topic.id || index}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    p: 1.5,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                      borderColor: 'primary.main',
+                    },
+                  }}
+                  onClick={() => navigate(`/posts/${topic.id}`)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={`#${index + 1}`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ minWidth: 40 }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        flex: 1,
+                        cursor: 'pointer',
+                        '&:hover': { color: 'primary.main' },
+                      }}
+                    >
+                      {topic.title}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <ThumbUp sx={{ fontSize: 16, color: 'success.main' }} />
+                      <Typography variant="caption" color="text.secondary">
+                        {topic.upvotes_count || 0}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Comment sx={{ fontSize: 16, color: 'info.main' }} />
+                      <Typography variant="caption" color="text.secondary">
+                        {topic.comments_count || 0}
+                      </Typography>
+                    </Box>
+
+                    {topic.category && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Category sx={{ fontSize: 16, color: 'warning.main' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          {topic.category.name}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  <Box sx={{ ml: 5 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Posted: {topic.created_at_human}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No trending topics available
+              </Typography>
+            )}
           </Box>
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
       <Card sx={{ boxShadow: 2, borderRadius: 1 }}>
         <CardHeader
           title={
@@ -58,16 +171,62 @@ function Rightbar() {
         />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {recentActivity.map((activity, index) => (
-              <Box key={index}>
-                <Typography variant="body2" sx={{ mb: 0.5 }}>
-                  {activity.action}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {activity.time}
-                </Typography>
-              </Box>
-            ))}
+            {isLoading ? (
+              <Typography variant="body2" color="text.secondary">
+                Loading recent activities...
+              </Typography>
+            ) : error ? (
+              <Typography variant="body2" color="error">
+                Error loading recent activities
+              </Typography>
+            ) : recentActivities && recentActivities.length > 0 ? (
+              recentActivities.map((activity, index) => (
+                <Box
+                  key={`${activity.type}-${activity.id}-${index}`}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    p: 1.5,
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                      borderColor: 'primary.main',
+                    },
+                  }}
+                  onClick={() => handleActivityClick(activity)}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    {getActivityIcon(activity.type)}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          '&:hover': { color: 'primary.main' },
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {getActivityTitle(activity)}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', mt: 0.5 }}
+                      >
+                        {activity.time}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                No recent activities available
+              </Typography>
+            )}
           </Box>
         </CardContent>
       </Card>

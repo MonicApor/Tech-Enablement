@@ -34,6 +34,8 @@ Route::prefix('auth')->middleware('auth:api')->group(function () {
 
 // post routes
 Route::middleware('auth:api')->group(function () {
+    Route::get('/posts/trending-topics', [PostController::class, 'trendingTopics']);
+    Route::get('/posts/recent-activities', [PostController::class, 'recentActivities']);
     Route::apiResource('/posts', PostController::class);
     Route::post('/posts/{post}/upvote', [PostController::class, 'upvote']);
     Route::post('/posts/{post}/flag', [PostController::class, 'flag']);

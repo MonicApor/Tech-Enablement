@@ -32,6 +32,7 @@ export const useCreatePost = async (data) => {
   try {
     const response = await api.post('/posts', data);
     mutate((key) => key && key.startsWith('/posts'));
+    mutate('/posts/trending-topics');
     toast('Post created successfully!', { type: 'success' });
     return response.data;
   } catch (error) {
@@ -44,6 +45,7 @@ export const useUpdatePost = async (id, data) => {
   try {
     const response = await api.put(`/posts/${id}`, data);
     mutate((key) => key && key.startsWith('/posts'));
+    mutate('/posts/trending-topics');
     toast('Post updated successfully!', { type: 'success' });
     return response.data;
   } catch (error) {
@@ -67,6 +69,7 @@ export const useDeletePost = async (id) => {
 export const useUpvotePost = async (id) => {
   const response = await api.post(`/posts/${id}/upvote`);
   mutate((key) => key && key.startsWith('/posts'));
+  mutate('/posts/trending-topics');
   return response.data;
 };
 
@@ -74,4 +77,32 @@ export const useFlagPost = async (id) => {
   const response = await api.post(`/posts/${id}/flag`);
   mutate((key) => key && key.startsWith('/posts'));
   return response.data;
+};
+
+export const useTrendingTopics = () => {
+  const { data, error, mutate, isLoading } = useSWR('/posts/trending-topics', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 60000,
+  });
+  return {
+    trendingTopics: data?.data || [],
+    error,
+    mutate,
+    isLoading,
+  };
+};
+
+export const useRecentActivities = () => {
+  const { data, error, mutate, isLoading } = useSWR('/posts/recent-activities', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    refreshInterval: 30000,
+  });
+  return {
+    recentActivities: data?.data || [],
+    error,
+    mutate,
+    isLoading,
+  };
 };

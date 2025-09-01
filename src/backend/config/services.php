@@ -40,4 +40,8 @@ return [
         'allowed_group_id' => env('MICROSOFT_ALLOWED_GROUP_ID'),
     ],
 
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+    ],
+
 ];

@@ -1,5 +1,5 @@
 // import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Add as AddIcon,
   BarChart,
@@ -10,6 +10,7 @@ import { Box, Button, Card, CardContent, CardHeader } from '@mui/material';
 
 function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   // const { t } = useTranslation();
 
   return (
@@ -18,9 +19,14 @@ function Sidebar() {
       <CardContent sx={{ pt: 0 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Button
-            variant="contained"
+            variant={location.pathname === '/employee' ? 'contained' : 'outline'}
             startIcon={<AddIcon />}
-            sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+            sx={{
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              backgroundColor: location.pathname === '/employee' ? undefined : 'transparent',
+            }}
+            onClick={() => navigate('/employee')}
           >
             New Feedback
           </Button>
@@ -47,13 +53,13 @@ function Sidebar() {
             Team Insights
           </Button>
           <Button
-            variant="outline"
+            variant={location.pathname === '/employee/chats' ? 'contained' : 'outline'}
             startIcon={<ChatIcon />}
             onClick={() => navigate('/employee/chats')}
             sx={{
               justifyContent: 'flex-start',
               textTransform: 'none',
-              backgroundColor: 'transparent',
+              backgroundColor: location.pathname === '/employee/chats' ? undefined : 'transparent',
             }}
           >
             Conversations

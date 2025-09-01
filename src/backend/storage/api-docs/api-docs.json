@@ -2315,6 +2315,82 @@
                 ]
             }
         },
+        "/api/posts/trending-topics": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get trending topics",
+                "description": "Get trending topics",
+                "operationId": "165bf3cca3b6bdf62d05f2580b7dbad7",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Post"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/posts/recent-activities": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Get recent activities",
+                "description": "Get recent activities",
+                "operationId": "f24f3701559c5699e211515fddfa7365",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Post"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/auth/register": {
             "post": {
                 "tags": [

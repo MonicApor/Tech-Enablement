@@ -263,45 +263,27 @@ const Chats = () => {
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                         {chat.other_participant?.name || 'Unknown User'}
                       </Typography>
-                      {chat.unread_count > 0 && (
-                        <Box
-                          sx={{
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            borderRadius: '50%',
-                            width: 20,
-                            height: 20,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          {chat.unread_count}
-                        </Box>
-                      )}
                     </Box>
                   }
                   secondary={
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ mb: 0.5, fontWeight: 500 }}
-                    >
-                      📝 {chat.post?.title || 'Unknown Post'}
-                    </Typography>
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 0.5, fontWeight: 500 }}
+                      >
+                        📝 {chat.post?.title || 'Unknown Post'}
+                        <br />
+                        💬 {chat.latest_message?.content || 'No messages yet'}
+                        <br />
+                        💬{' '}
+                        {chat.last_message_at
+                          ? new Date(chat.last_message_at).toLocaleString()
+                          : 'No activity'}
+                      </Typography>
+                    </Box>
                   }
                 />
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                    💬 {chat.latest_message?.content || 'No messages yet'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {chat.last_message_at
-                      ? new Date(chat.last_message_at).toLocaleString()
-                      : 'No activity'}
-                  </Typography>
-                </Box>
               </ListItem>
             ))
           )}

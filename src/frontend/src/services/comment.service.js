@@ -23,17 +23,20 @@ export const useCreateComment = async (body, postId, parentId = null) => {
     parent_id: parentId,
   });
   mutate((key) => key && key.startsWith('/posts'));
+  mutate('/posts/trending-topics');
   return response.data;
 };
 
 export const useUpdateComment = async (id, data, postId) => {
   const response = await api.put(`/comments/${id}`, data);
   mutate(`/posts/${postId}/comments`);
+  mutate('/posts/trending-topics');
   return response.data;
 };
 
 export const useDeleteComment = async (id, postId) => {
   const response = await api.delete(`/comments/${id}`);
   mutate(`/posts/${postId}/comments`);
+  mutate('/posts/trending-topics');
   return response.data;
 };

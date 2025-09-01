@@ -137,7 +137,7 @@ services:
       - REACT_APP_API_URL=http://localhost:8000/api
       - REACT_APP_CLIENT_ID=2
       - REACT_APP_CLIENT_SECRET=m9wfNoY0kBjNtyPAD0h5JFdkDqdm0FfM8lalkwtT
-      - REACT_APP_WEBSOCKET_HOST=soketi
+      - REACT_APP_WEBSOCKET_HOST=localhost
       - REACT_APP_WEBSOCKET_KEY=${PUSHER_APP_KEY}
       - REACT_APP_WEBSOCKET_CLUSTER=mt1
     ports:

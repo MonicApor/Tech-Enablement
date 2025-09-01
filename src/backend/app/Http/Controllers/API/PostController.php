@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\Post;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 /**
  * @OA\Tag(
@@ -94,6 +97,15 @@ class PostController extends Controller
             ...$request->validated(),
             'user_id' => auth()->id(),
         ]);
+
+        // AI auto-flag based on title and body
+        try {
+            if ($this->shouldFlagPostAI($post->title, $post->body)) {
+                $post->update(['flaged_at' => now()]);
+            }
+        } catch (\Throwable $e) {
+            // Swallow AI errors to not block post creation
+        }
         return response()->json([
             'message' => 'Post created successfully',
             'data' => new PostResource($post->load('user', 'category')),
@@ -244,5 +256,187 @@ class PostController extends Controller
             'is_upvoted' => $isUpvoted,
             'upvotes_count' => $post->fresh()->upvotes_count,
         ]);
+    }
+
+    /**
+     * Get trending topics
+     * 
+     * @OA\Get(
+     *     path="/api/posts/trending-topics",
+     *     summary="Get trending topics",
+     *     tags={"Posts"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", properties={@OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Post"))})),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function trendingTopics(): JsonResponse
+    {
+        $trendingTopics = Post::trending()->get();
+        return response()->json([
+            'data' => PostResource::collection($trendingTopics),
+        ]);
+    }
+
+    /**
+     * Get recent activities
+     * 
+     * @OA\Get(
+     *     path="/api/posts/recent-activities",
+     *     summary="Get recent activities",
+     *     tags={"Posts"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", properties={@OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Post"))})),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function recentActivities(): JsonResponse
+    {
+        $user = Auth::user();
+        $activities = collect(); //new collection to store activities
+
+        //get 5 recent posts 
+        $recentPost = Post::where('user_id', $user->id)->whereNull('flaged_at')
+        ->where('status', 'active')->latest()->take(5)->get();
+        
+        //populate activities with recent posts
+        $activities = $activities->concat($recentPost->map(fn($post) => [
+            'type' => 'Post',
+            'post' => $post->id,
+            'title' => $post->title,
+            'time' => $post->created_at->diffForHumans(),
+        ]));
+
+        //get 5 recent hr replies if current user is hr 
+        if ($user->role === 'hr') {
+            $recentHrReplies = Comment::where('user_id', $user->id)->latest()->take(5)->get();
+        
+
+            //populate activities with recent hr replies
+            $activities = $activities->concat($recentHrReplies->map(fn($reply) => [
+                'type' => 'HrReply',
+                'id' => $reply->id,
+                'post_id' => $reply->post_id,
+                'body' => $reply->body,
+                'time' => $reply->created_at->diffForHumans(),
+            ]));
+        }
+
+        //get 5 recent comments of the currecnt user
+        $recentComments = Comment::where('user_id', $user->id)->latest()->take(5)->get();
+
+        //populate activities with recent comments
+        $activities = $activities->concat($recentComments->map(fn($comment) => [
+            'type' => 'Comment',
+            'id' => $comment->id,
+            'post_id' => $comment->post_id,
+            'body' => $comment->body,
+            'time' => $comment->created_at->diffForHumans(),
+        ]));
+
+        //get 5 recent flagged posts
+        $recentFlaggedPosts = Post::whereNotNull('flaged_at')->where('user_id', $user->id)->latest()->take(5)->get();
+
+        //populate activities with recent flagged posts
+        $activities = $activities->concat($recentFlaggedPosts->map(fn($post) => [
+            'type' => 'FlaggedPost',
+            'id' => $post->id,
+            'title' => $post->title,
+            'time' => $post->flaged_at->diffForHumans(),
+        ]));
+
+        //sort activities by time
+        $sortedActivities = $activities->sortByDesc(function($activity) {
+            if (isset($activity['time'])) {
+                return $activity['time'];
+            }
+            if (isset($activity['flagged_at'])) {
+                return $activity['flagged_at'];
+            }
+            return now();
+        })->values();
+
+        //get 5 recent activities
+        $recentActivities = $sortedActivities->take(5);
+
+        return response()->json([
+            'data' => $recentActivities,
+        ]);
+    }
+
+    /**
+     * Call OpenRouter to determine if post should be flagged.
+     */
+    private function shouldFlagPostAI(string $title, string $body): bool
+    {
+        $apiKey = env('OPENROUTER_API_KEY');
+        if (empty($apiKey)) {
+            return false;
+        }
+
+        $prompt = $this->buildAIFlagPrompt($title, $body);
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json',
+            'HTTP-Referer' => config('app.url'),
+            'X-Title' => config('app.name', 'AEFS-Apor'),
+        ])->post('https://openrouter.ai/api/v1/chat/completions', [
+            'model' => 'anthropic/claude-3-haiku',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a content moderation assistant for an anonymous employee feedback system. Return only JSON.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $prompt,
+                ],
+            ],
+            'max_tokens' => 200,
+            'temperature' => 0.1,
+        ]);
+
+        if (!$response->successful()) {
+            return false;
+        }
+
+        $content = data_get($response->json(), 'choices.0.message.content');
+        if (!is_string($content)) {
+            return false;
+        }
+
+        // Extract JSON from the model output
+        $jsonStart = strpos($content, '{');
+        $jsonEnd = strrpos($content, '}');
+        if ($jsonStart !== false && $jsonEnd !== false) {
+            $json = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
+        } else {
+            $json = $content;
+        }
+
+        $parsed = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($parsed)) {
+            return false;
+        }
+
+        return (bool)($parsed['should_flag'] ?? false);
+    }
+
+    private function buildAIFlagPrompt(string $title, string $body): string
+    {
+        $content = "Title: {$title}\n\nContent: {$body}";
+        return <<<PROMPT
+Analyze the following anonymous employee feedback for policy violations. Respond ONLY with JSON using this schema:
+{
+  "should_flag": boolean,
+  "confidence": number (0-100),
+  "reasons": ["string", ...]
+}
+
+Flag if it includes: harassment/bullying, threats, discrimination, explicit sexual content, hate speech, doxxing, credible accusations without evidence, or clear policy violations. Be conservative; if unclear, set should_flag to false.
+
+$content
+PROMPT;
     }
 }
