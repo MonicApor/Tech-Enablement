@@ -12,7 +12,7 @@ import {
   useDeleteComment,
   useUpdateComment,
 } from 'services/comment.service';
-import { useDeletePost, useFlagPost, useUpdatePost, useUpvotePost } from 'services/post.service';
+import { updatePost, useDeletePost, useFlagPost, useUpvotePost } from 'services/post.service';
 import { postSchema } from 'validations/post';
 import {
   Chat as ChatIcon,
@@ -23,6 +23,7 @@ import {
   MoreVert,
   Reply,
   ThumbUp,
+  Undo,
   Visibility,
 } from '@mui/icons-material';
 import {
@@ -40,6 +41,7 @@ import {
   List,
   ListItem,
   ListItemAvatar,
+  ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
@@ -47,6 +49,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import FileUpload from '../atoms/FileUpload';
+import PostAttachments, { getFileIcon } from '../atoms/PostAttachments';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 
 const Post = ({ post }) => {
@@ -64,6 +68,8 @@ const Post = ({ post }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [newFiles, setNewFiles] = useState([]);
+  const [attachmentsToRemove, setAttachmentsToRemove] = useState([]);
   const { categories } = useCategories();
 
   const { comments, isLoading: isLoadingComments } = useComments(post.id);
@@ -151,6 +157,8 @@ const Post = ({ post }) => {
 
   const handleEdit = () => {
     setIsEditing(true);
+    setNewFiles([]);
+    setAttachmentsToRemove([]);
     editForm.reset({
       title: post.title,
       body: post.body,
@@ -159,11 +167,30 @@ const Post = ({ post }) => {
     handleMenuClose();
   };
 
+  const handleNewFileChange = (files) => {
+    setNewFiles(files);
+  };
+
+  const handleRemoveAttachment = (attachmentId) => {
+    setAttachmentsToRemove((prev) => [...prev, attachmentId]);
+  };
+
+  const handleCancelRemoveAttachment = (attachmentId) => {
+    setAttachmentsToRemove((prev) => prev.filter((id) => id !== attachmentId));
+  };
+
   const handleSavePostEdit = async (data) => {
     setIsUpdating(true);
     try {
-      await useUpdatePost(post.id, data);
+      const updateData = {
+        ...data,
+        files: newFiles,
+        removeAttachments: attachmentsToRemove,
+      };
+      await updatePost(post.id, updateData);
       setIsEditing(false);
+      setNewFiles([]);
+      setAttachmentsToRemove([]);
     } catch (error) {
       console.error('Error updating post:', error);
     } finally {
@@ -173,6 +200,8 @@ const Post = ({ post }) => {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setNewFiles([]);
+    setAttachmentsToRemove([]);
     editForm.reset({
       title: post.title,
       body: post.body,
@@ -298,7 +327,13 @@ const Post = ({ post }) => {
               <Typography variant="h6" fontWeight={600}>
                 {isEditing ? 'Editing Post' : post.title}
               </Typography>
-              <Chip label={post.category.name} size="small" color="primary" variant="outlined" />
+              <Chip
+                label={post.category.name}
+                size="small"
+                color="primary"
+                variant="outlined"
+                component="span"
+              />
             </Box>
           }
           subheader={
@@ -359,6 +394,7 @@ const Post = ({ post }) => {
                           variant={isSelected ? 'filled' : 'outlined'}
                           size="small"
                           color={hasError ? 'error' : isSelected ? 'primary' : 'default'}
+                          component="span"
                           onClick={() => {
                             setEditValue('category_id', category.id);
                           }}
@@ -368,6 +404,99 @@ const Post = ({ post }) => {
                     })}
                 </Box>
               </Box>
+
+              {post.attachments && post.attachments.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Current Attachments:
+                  </Typography>
+                  <List dense>
+                    {post.attachments.map((attachment) => {
+                      const isMarkedForRemoval = attachmentsToRemove.includes(attachment.id);
+                      return (
+                        <ListItem
+                          key={attachment.id}
+                          sx={{
+                            border: '1px solid',
+                            borderColor: isMarkedForRemoval ? 'error.main' : 'grey.200',
+                            borderRadius: 1,
+                            mb: 1,
+                            backgroundColor: isMarkedForRemoval ? 'error.50' : 'background.paper',
+                            opacity: isMarkedForRemoval ? 0.6 : 1,
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 40 }}>
+                            {getFileIcon(attachment)}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={attachment.original_name}
+                            secondary={
+                              <span
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                  marginTop: 4,
+                                }}
+                              >
+                                <Chip
+                                  label={attachment.human_file_size}
+                                  size="small"
+                                  variant="outlined"
+                                  component="span"
+                                  sx={{ height: 20, fontSize: '0.75rem' }}
+                                />
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  component="span"
+                                >
+                                  {attachment.mime_type}
+                                </Typography>
+                              </span>
+                            }
+                          />
+                          {isMarkedForRemoval ? (
+                            <IconButton
+                              edge="end"
+                              aria-label="cancel remove"
+                              onClick={() => handleCancelRemoveAttachment(attachment.id)}
+                              color="success"
+                              size="small"
+                              title="Cancel Remove"
+                            >
+                              <Undo />
+                            </IconButton>
+                          ) : (
+                            <IconButton
+                              edge="end"
+                              aria-label="remove attachment"
+                              onClick={() => handleRemoveAttachment(attachment.id)}
+                              color="error"
+                              size="small"
+                              title="Remove Attachment"
+                            >
+                              <Delete />
+                            </IconButton>
+                          )}
+                        </ListItem>
+                      );
+                    })}
+                  </List>
+                </Box>
+              )}
+
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Add New Files:
+                </Typography>
+                <FileUpload
+                  onFileChange={handleNewFileChange}
+                  clearFiles={false}
+                  initialFiles={newFiles}
+                />
+              </Box>
+
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                 <Button variant="outlined" onClick={handleCancelEdit} disabled={isUpdating}>
                   Cancel
@@ -382,9 +511,12 @@ const Post = ({ post }) => {
               </Box>
             </Box>
           ) : (
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              {post.body}
-            </Typography>
+            <Box>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {post.body}
+              </Typography>
+              <PostAttachments attachments={post.attachments} />
+            </Box>
           )}
         </CardContent>
 

@@ -42,6 +42,10 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/posts/{post}/resolve', [PostController::class, 'resolve']);
 });
 
+Route::get('/attachments/{path}', [PostController::class, 'downloadAttachment'])
+    ->where('path', '.*')
+    ->name('api.attachments.download');
+
 //Comment routes
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('/comments', CommentController::class);

@@ -75,6 +75,14 @@ class Post extends Model
         return $this->hasMany(PostUpvote::class);
     }
 
+    /**
+     * Get the attachments for the post.
+     */
+    public function attachments() : HasMany
+    {
+        return $this->hasMany(PostAttachment::class);
+    }
+
     // public function views() : HasMany
     // {
     //     return $this->hasMany(View::class);

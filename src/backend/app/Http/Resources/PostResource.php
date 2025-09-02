@@ -4,6 +4,10 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\NewUserResource;
+use App\Http\Resources\CommentResource;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\PostAttachmentResource;
 
 class PostResource extends JsonResource
 {
@@ -30,6 +34,7 @@ class PostResource extends JsonResource
             'user' => new NewUserResource($this->whenLoaded('user')),
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),
             'created_at_human' => $this->created_at->diffForHumans(),
         ];
     }

@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCategories } from 'services/categories.service';
-import { useCreatePost, usePosts } from 'services/post.service';
+import { createPost, usePosts } from 'services/post.service';
 import { defaultValuesPost, postSchema } from 'validations/post';
 import { Message } from '@mui/icons-material';
 import {
@@ -12,13 +12,16 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
   Pagination,
   Select,
+  Stack,
   TextField,
 } from '@mui/material';
+import FileUpload from 'components/atoms/FileUpload';
 import Post from 'components/molecules/Post';
 
 function Feed() {
@@ -29,6 +32,7 @@ function Feed() {
   const [sort, setSort] = useState('desc');
   const { categories } = useCategories();
   const { posts, meta, isLoading: postsLoading } = usePosts(page, search, selectedCategory, sort);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const handlePageChange = (event, value) => {
     event.preventDefault();
@@ -66,6 +70,10 @@ function Feed() {
     setPage(1);
   };
 
+  const handleFileChange = (files) => {
+    setSelectedFiles(files);
+  };
+
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(postSchema),
@@ -81,9 +89,19 @@ function Feed() {
     formState: { errors },
   } = form;
 
+  const [clearFiles, setClearFiles] = useState(false);
+
   const onSubmit = async (data) => {
-    await useCreatePost(data);
+    const formDataWithFiles = {
+      ...data,
+      files: selectedFiles,
+    };
+
+    await createPost(formDataWithFiles);
     reset();
+    setSelectedFiles([]);
+    setClearFiles(true);
+    setTimeout(() => setClearFiles(false), 100);
   };
 
   return (
@@ -111,6 +129,8 @@ function Feed() {
             error={errors && errors.body ? true : false}
             helperText={errors ? errors?.body?.message : null}
           />
+          <FileUpload onFileChange={handleFileChange} clearFiles={clearFiles} />
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               {categories &&
@@ -133,10 +153,12 @@ function Feed() {
                   );
                 })}
             </Box>
-            <Button variant="contained" startIcon={<Message />} type="submit">
-              Post Feedback
-            </Button>
           </Box>
+          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Button variant="contained" startIcon={<Message />} type="submit">
+              {postsLoading ? <CircularProgress size={20} /> : 'Post Feedback'}
+            </Button>
+          </Stack>
         </CardContent>
       </Card>
 
