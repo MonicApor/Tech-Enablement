@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCategories } from 'services/categories.service';
-import { useCreatePost, usePosts } from 'services/post.service';
+import { createPost, usePosts } from 'services/post.service';
 import { defaultValuesPost, postSchema } from 'validations/post';
 import { Message } from '@mui/icons-material';
 import {
@@ -12,6 +12,7 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -70,7 +71,6 @@ function Feed() {
   };
 
   const handleFileChange = (files) => {
-    console.log('Files received:', files);
     setSelectedFiles(files);
   };
 
@@ -89,16 +89,19 @@ function Feed() {
     formState: { errors },
   } = form;
 
+  const [clearFiles, setClearFiles] = useState(false);
+
   const onSubmit = async (data) => {
     const formDataWithFiles = {
       ...data,
       files: selectedFiles,
     };
 
-    console.log('Submitting form with files:', formDataWithFiles);
-    await useCreatePost(formDataWithFiles);
+    await createPost(formDataWithFiles);
     reset();
     setSelectedFiles([]);
+    setClearFiles(true);
+    setTimeout(() => setClearFiles(false), 100);
   };
 
   return (
@@ -126,7 +129,7 @@ function Feed() {
             error={errors && errors.body ? true : false}
             helperText={errors ? errors?.body?.message : null}
           />
-          <FileUpload onFileChange={handleFileChange} />
+          <FileUpload onFileChange={handleFileChange} clearFiles={clearFiles} />
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -153,7 +156,7 @@ function Feed() {
           </Box>
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
             <Button variant="contained" startIcon={<Message />} type="submit">
-              Post Feedback
+              {postsLoading ? <CircularProgress size={20} /> : 'Post Feedback'}
             </Button>
           </Stack>
         </CardContent>

@@ -28,7 +28,7 @@ export const usePosts = (page = 1, search = '', categoryId = '', sort = 'desc', 
   };
 };
 
-export const useCreatePost = async (data) => {
+export const createPost = async (data) => {
   try {
     const formData = new FormData();
 
@@ -58,9 +58,35 @@ export const useCreatePost = async (data) => {
   }
 };
 
-export const useUpdatePost = async (id, data) => {
+export const updatePost = async (id, data) => {
   try {
-    const response = await api.put(`/posts/${id}`, data);
+    const formData = new FormData();
+
+    if (data.title) formData.append('title', data.title);
+    if (data.body) formData.append('body', data.body);
+    if (data.category_id) formData.append('category_id', data.category_id);
+    if (data.status) formData.append('status', data.status);
+
+    if (data.files && data.files.length > 0) {
+      data.files.forEach((file, index) => {
+        formData.append(`attachments[${index}]`, file);
+      });
+    }
+
+    if (data.removeAttachments && data.removeAttachments.length > 0) {
+      data.removeAttachments.forEach((attachmentId, index) => {
+        formData.append(`remove_attachments[${index}]`, attachmentId);
+      });
+    }
+
+    formData.append('_method', 'PUT');
+
+    const response = await api.post(`/posts/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
     mutate((key) => key && key.startsWith('/posts'));
     mutate('/posts/trending-topics');
     toast('Post updated successfully!', { type: 'success' });

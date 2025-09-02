@@ -44,7 +44,7 @@ class PostController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Post::with(['user', 'category', 'comments'])
+        $query = Post::with(['user', 'category', 'comments', 'attachments'])
             ->active();
 
         // filter by category
@@ -102,11 +102,11 @@ class PostController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        // Handle file uploads
+        // Handle file uploads        
         if ($request->hasFile('attachments')) {
             $files = $request->file('attachments');
             
-            foreach ($files as $file) {
+            foreach ($files as $index => $file) {
                 if ($file->isValid()) {
                     $originalName = $file->getClientOriginalName();
                     $extension = $file->getClientOriginalExtension();
@@ -119,7 +119,7 @@ class PostController extends Controller
                     $uploaded = Storage::disk('minio')->put($filePath, file_get_contents($file));
                     
                     if ($uploaded) {
-                        PostAttachment::create([
+                        $attachment = PostAttachment::create([
                             'post_id' => $post->id,
                             'user_id' => auth()->id(),
                             'original_name' => $originalName,
@@ -128,7 +128,7 @@ class PostController extends Controller
                             'file_size' => $file->getSize(),
                             'mime_type' => $file->getMimeType(),
                             'disk' => 'minio',
-                            'url' => Storage::disk('minio')->url($filePath),
+                            'url' => route('api.attachments.download', ['path' => $filePath]),
                         ]);
                     }
                 }
@@ -167,7 +167,7 @@ class PostController extends Controller
     {
         $post->incrementViews();
         return response()->json([
-            'data' => new PostResource($post->load('user', 'category', 'comments')),
+            'data' => new PostResource($post->load('user', 'category', 'comments', 'attachments')),
         ]);
     }
 
@@ -192,11 +192,85 @@ class PostController extends Controller
     {
         $this->authorize('update', $post);
         
-        $post->update($request->validated());
+        
+        $post->update($request->only(['title', 'body', 'category_id', 'status']));
+                
+        // Remove specified attachments
+        if ($request->has('remove_attachments') && is_array($request->remove_attachments)) {
+            foreach ($request->remove_attachments as $attachmentId) {
+                $attachment = PostAttachment::find($attachmentId);
+                if ($attachment && $attachment->post_id === $post->id) {
+                    if (Storage::disk('minio')->exists($attachment->file_path)) {
+                        Storage::disk('minio')->delete($attachment->file_path);
+                    }
+                    $attachment->delete();
+                }
+            }
+        }
+        
+        // Add new file uploads
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments');
+            
+            if (is_array($files) && !empty($files)) {
+                foreach ($files as $index => $file) {
+                    if ($file->isValid()) {
+                        $originalName = $file->getClientOriginalName();
+                        $extension = $file->getClientOriginalExtension();
+                        $fileName = Str::uuid() . '.' . $extension;
+                        
+                        $filePath = 'posts/' . date('Y/m/d') . '/' . $fileName;
+                        
+                        $uploaded = Storage::disk('minio')->put($filePath, file_get_contents($file));
+                        
+                        if ($uploaded) {
+                            $attachment = PostAttachment::create([
+                                'post_id' => $post->id,
+                                'user_id' => auth()->id(),
+                                'original_name' => $originalName,
+                                'file_name' => $fileName,
+                                'file_path' => $filePath,
+                                'file_size' => $file->getSize(),
+                                'mime_type' => $file->getMimeType(),
+                                'disk' => 'minio',
+                                'url' => route('api.attachments.download', ['path' => $filePath]),
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+        
         return response()->json([
             'message' => 'Post updated successfully',
-            'data' => new PostResource($post->load('user', 'category')),
+            'data' => new PostResource($post->load('user', 'category', 'attachments')),
         ]);
+    }
+
+    /**
+     * Download attachment file
+     */
+    public function downloadAttachment(Request $request, $path): \Symfony\Component\HttpFoundation\Response
+    {
+        try {
+            $decodedPath = urldecode($path);
+            
+            if (!Storage::disk('minio')->exists($decodedPath)) {
+                abort(404, 'File not found');
+            }
+
+            $fileContents = Storage::disk('minio')->get($decodedPath);
+            
+            $mimeType = Storage::disk('minio')->mimeType($decodedPath);
+            $fileName = basename($decodedPath);
+            
+            return response($fileContents)
+                ->header('Content-Type', $mimeType)
+                ->header('Content-Disposition', 'inline; filename="' . $fileName . '"');
+                
+        } catch (\Exception $e) {
+            abort(500, 'Error downloading file');
+        }
     }
 
     /**

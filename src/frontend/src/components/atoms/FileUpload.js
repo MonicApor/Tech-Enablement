@@ -17,6 +17,7 @@ const FileUpload = ({
   accept = '.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.zip,.rar',
   initialFiles = [],
   value = null,
+  clearFiles = false,
 }) => {
   const [files, setFiles] = useState(initialFiles);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -34,6 +35,15 @@ const FileUpload = ({
       setFiles(initialFiles);
     }
   }, [initialFiles]);
+
+  useEffect(() => {
+    if (clearFiles) {
+      setFiles([]);
+      if (onFileChange && typeof onFileChange === 'function') {
+        onFileChange([]);
+      }
+    }
+  }, [clearFiles, onFileChange]);
 
   const handleFileSelect = (selectedFiles) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
@@ -82,7 +92,6 @@ const FileUpload = ({
     event.stopPropagation();
 
     if (event.currentTarget === event.target || event.currentTarget.contains(event.target)) {
-      console.log('Drag enter detected on drop zone');
       setIsDragOver(true);
     }
   };
@@ -92,7 +101,6 @@ const FileUpload = ({
     event.stopPropagation();
 
     if (!isDragOver) {
-      console.log('Drag over detected on drop zone');
       setIsDragOver(true);
     }
   };
@@ -106,7 +114,6 @@ const FileUpload = ({
     const y = event.clientY;
 
     if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      console.log('Drag leave detected - outside drop zone');
       setIsDragOver(false);
     }
   };
@@ -114,11 +121,9 @@ const FileUpload = ({
   const handleDrop = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log('Drop detected on drop zone');
     setIsDragOver(false);
 
     const droppedFiles = event.dataTransfer.files;
-    console.log('Dropped files:', droppedFiles);
 
     if (droppedFiles && droppedFiles.length > 0) {
       handleFileSelect(droppedFiles);
@@ -270,6 +275,7 @@ FileUpload.propTypes = {
   accept: PropTypes.string,
   initialFiles: PropTypes.arrayOf(PropTypes.object),
   value: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+  clearFiles: PropTypes.bool,
 };
 
 export default FileUpload;
