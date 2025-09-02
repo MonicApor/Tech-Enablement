@@ -17,8 +17,10 @@ import {
   MenuItem,
   Pagination,
   Select,
+  Stack,
   TextField,
 } from '@mui/material';
+import FileUpload from 'components/atoms/FileUpload';
 import Post from 'components/molecules/Post';
 
 function Feed() {
@@ -29,6 +31,7 @@ function Feed() {
   const [sort, setSort] = useState('desc');
   const { categories } = useCategories();
   const { posts, meta, isLoading: postsLoading } = usePosts(page, search, selectedCategory, sort);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const handlePageChange = (event, value) => {
     event.preventDefault();
@@ -66,6 +69,11 @@ function Feed() {
     setPage(1);
   };
 
+  const handleFileChange = (files) => {
+    console.log('Files received:', files);
+    setSelectedFiles(files);
+  };
+
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(postSchema),
@@ -82,8 +90,15 @@ function Feed() {
   } = form;
 
   const onSubmit = async (data) => {
-    await useCreatePost(data);
+    const formDataWithFiles = {
+      ...data,
+      files: selectedFiles,
+    };
+
+    console.log('Submitting form with files:', formDataWithFiles);
+    await useCreatePost(formDataWithFiles);
     reset();
+    setSelectedFiles([]);
   };
 
   return (
@@ -111,6 +126,8 @@ function Feed() {
             error={errors && errors.body ? true : false}
             helperText={errors ? errors?.body?.message : null}
           />
+          <FileUpload onFileChange={handleFileChange} />
+
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               {categories &&
@@ -133,10 +150,12 @@ function Feed() {
                   );
                 })}
             </Box>
+          </Box>
+          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
             <Button variant="contained" startIcon={<Message />} type="submit">
               Post Feedback
             </Button>
-          </Box>
+          </Stack>
         </CardContent>
       </Card>
 

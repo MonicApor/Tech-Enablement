@@ -12,6 +12,10 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use App\Models\PostAttachment;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 /**
  * @OA\Tag(
@@ -98,6 +102,39 @@ class PostController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        // Handle file uploads
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments');
+            
+            foreach ($files as $file) {
+                if ($file->isValid()) {
+                    $originalName = $file->getClientOriginalName();
+                    $extension = $file->getClientOriginalExtension();
+                    $fileName = Str::uuid() . '.' . $extension;
+                    
+                    // Create the full path
+                    $filePath = 'posts/' . date('Y/m/d') . '/' . $fileName;
+                    
+                    // Upload to MinIO
+                    $uploaded = Storage::disk('minio')->put($filePath, file_get_contents($file));
+                    
+                    if ($uploaded) {
+                        PostAttachment::create([
+                            'post_id' => $post->id,
+                            'user_id' => auth()->id(),
+                            'original_name' => $originalName,
+                            'file_name' => $fileName,
+                            'file_path' => $filePath,
+                            'file_size' => $file->getSize(),
+                            'mime_type' => $file->getMimeType(),
+                            'disk' => 'minio',
+                            'url' => Storage::disk('minio')->url($filePath),
+                        ]);
+                    }
+                }
+            }
+        }
+
         // AI auto-flag based on title and body
         try {
             if ($this->shouldFlagPostAI($post->title, $post->body)) {
@@ -108,7 +145,7 @@ class PostController extends Controller
         }
         return response()->json([
             'message' => 'Post created successfully',
-            'data' => new PostResource($post->load('user', 'category')),
+            'data' => new PostResource($post->load('user', 'category', 'attachments')),
         ], 201);
     }
 

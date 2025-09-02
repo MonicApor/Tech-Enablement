@@ -40,6 +40,17 @@ class StorePostRequest extends FormRequest
                 'required',
                 'exists:categories,id',
             ],
+            'attachments.*' => [  //rule for each attachment
+                'nullable',
+                'file',
+                'max:5120', // 5MB max
+                'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt',
+            ],
+            'attachments' => [
+                'nullable',
+                'array',
+                'max:5', // Max 5 files
+            ],
         ];
     }
 
@@ -53,6 +64,9 @@ class StorePostRequest extends FormRequest
             'body.min' => 'The body must be at least 2 characters.',
             'category_id.required' => 'The category is required.',
             'category_id.exists' => 'The category does not exist.',
+            'attachments.max' => 'The attachments must be less than 5 files.',
+            'attachments.*.max' => 'The attachment must be less than 5MB.',
+            'attachments.*.mimes' => 'The attachment must be a valid file type.',
         ];
     }
 

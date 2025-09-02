@@ -30,7 +30,24 @@ export const usePosts = (page = 1, search = '', categoryId = '', sort = 'desc', 
 
 export const useCreatePost = async (data) => {
   try {
-    const response = await api.post('/posts', data);
+    const formData = new FormData();
+
+    formData.append('title', data.title);
+    formData.append('body', data.body);
+    formData.append('category_id', data.category_id);
+
+    if (data.files && data.files.length > 0) {
+      data.files.forEach((file, index) => {
+        formData.append(`attachments[${index}]`, file);
+      });
+    }
+
+    const response = await api.post('/posts', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
     mutate((key) => key && key.startsWith('/posts'));
     mutate('/posts/trending-topics');
     toast('Post created successfully!', { type: 'success' });

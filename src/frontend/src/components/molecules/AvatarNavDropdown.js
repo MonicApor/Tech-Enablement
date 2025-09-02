@@ -20,7 +20,6 @@ function AvatarNavDropdown(props) {
   const location = useLocation();
 
   const getAvatarProps = (user) => {
-    // set initial props
     const props = {
       sx: {
         marginLeft: '16px',
@@ -32,7 +31,7 @@ function AvatarNavDropdown(props) {
       ? {
           ...props,
           ...{
-            alt: user.name,
+            alt: user.username,
             src: user.avatar,
           },
         }
@@ -40,13 +39,13 @@ function AvatarNavDropdown(props) {
           ...props,
           ...{
             sx: {
-              bgcolor: stringToColor(user.name || 'Unknown User'),
+              bgcolor: stringToColor(user.username || 'Unknown User'),
               marginLeft: '16px',
               cursor: 'pointer',
             },
             children: user.name
               ? (() => {
-                  const nameParts = user.name.split(' ');
+                  const nameParts = user.username.split(' ');
                   const firstInitial = nameParts[0]?.[0] || '';
                   const lastInitial = nameParts[1]?.[0] || '';
                   return `${firstInitial}${lastInitial}`;
@@ -63,10 +62,8 @@ function AvatarNavDropdown(props) {
   };
 
   useEffect(() => {
-    // Bind the event listener
     document.addEventListener('mousedown', handleOnClickOutside);
     return () => {
-      // Unbind the event listener on clean up
       document.removeEventListener('mousedown', handleOnClickOutside);
       setOpen(false);
     };
