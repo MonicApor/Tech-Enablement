@@ -44,7 +44,7 @@ class PostController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Post::with(['user.employee', 'category', 'comments', 'attachments'])
+        $query = Post::with(['employee.user', 'category', 'comments', 'attachments'])
             ->active();
 
         // filter by category
@@ -99,7 +99,7 @@ class PostController extends Controller
         
         $post = Post::create([
             ...$request->validated(),
-            'user_id' => auth()->id(),
+            'employee_id' => auth()->user()->employee->id,
         ]);
 
         // Handle file uploads        
@@ -121,7 +121,7 @@ class PostController extends Controller
                     if ($uploaded) {
                         $attachment = PostAttachment::create([
                             'post_id' => $post->id,
-                            'user_id' => auth()->id(),
+                            'employee_id' => auth()->user()->employee->id,
                             'original_name' => $originalName,
                             'file_name' => $fileName,
                             'file_path' => $filePath,
@@ -145,7 +145,7 @@ class PostController extends Controller
         }
         return response()->json([
             'message' => 'Post created successfully',
-            'data' => new PostResource($post->load('user.employee', 'category', 'attachments')),
+            'data' => new PostResource($post->load('employee.user', 'category', 'attachments')),
         ], 201);
     }
 
@@ -167,7 +167,7 @@ class PostController extends Controller
     {
         $post->incrementViews();
         return response()->json([
-            'data' => new PostResource($post->load('user.employee', 'category', 'comments', 'attachments')),
+            'data' => new PostResource($post->load('employee.user', 'category', 'comments', 'attachments')),
         ]);
     }
 
@@ -226,7 +226,7 @@ class PostController extends Controller
                         if ($uploaded) {
                             $attachment = PostAttachment::create([
                                 'post_id' => $post->id,
-                                'user_id' => auth()->id(),
+                                'employee_id' => auth()->user()->employee->id,
                                 'original_name' => $originalName,
                                 'file_name' => $fileName,
                                 'file_path' => $filePath,
@@ -243,7 +243,7 @@ class PostController extends Controller
         
         return response()->json([
             'message' => 'Post updated successfully',
-            'data' => new PostResource($post->load('user.employee', 'category', 'attachments')),
+            'data' => new PostResource($post->load('employee.user', 'category', 'attachments')),
         ]);
     }
 
@@ -407,7 +407,13 @@ class PostController extends Controller
         $activities = collect(); //new collection to store activities
 
         //get 5 recent posts 
-        $recentPost = Post::where('user_id', $user->id)->whereNull('flaged_at')
+        if (!$user->employee) {
+            return response()->json([
+                'message' => 'User does not have an associated employee record',
+            ], 400);
+        }
+        
+        $recentPost = Post::where('employee_id', $user->employee->id)->whereNull('flaged_at')
         ->where('status', 'active')->latest()->take(5)->get();
         
         //populate activities with recent posts
@@ -420,7 +426,7 @@ class PostController extends Controller
 
         //get 5 recent hr replies if current user is hr 
         if ($user->role === 'hr') {
-            $recentHrReplies = Comment::where('user_id', $user->id)->latest()->take(5)->get();
+            $recentHrReplies = Comment::where('employee_id', $user->employee->id)->latest()->take(5)->get();
         
 
             //populate activities with recent hr replies
@@ -434,7 +440,7 @@ class PostController extends Controller
         }
 
         //get 5 recent comments of the currecnt user
-        $recentComments = Comment::where('user_id', $user->id)->latest()->take(5)->get();
+        $recentComments = Comment::where('employee_id', $user->employee->id)->latest()->take(5)->get();
 
         //populate activities with recent comments
         $activities = $activities->concat($recentComments->map(fn($comment) => [
@@ -446,7 +452,7 @@ class PostController extends Controller
         ]));
 
         //get 5 recent flagged posts
-        $recentFlaggedPosts = Post::whereNotNull('flaged_at')->where('user_id', $user->id)->latest()->take(5)->get();
+        $recentFlaggedPosts = Post::whereNotNull('flaged_at')->where('employee_id', $user->employee->id)->latest()->take(5)->get();
 
         //populate activities with recent flagged posts
         $activities = $activities->concat($recentFlaggedPosts->map(fn($post) => [

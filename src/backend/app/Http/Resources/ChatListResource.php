@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\EmployeeResource;
 
 class ChatListResource extends JsonResource
 {
@@ -19,7 +20,7 @@ class ChatListResource extends JsonResource
             ],
             'other_participant' => $this->whenLoaded('otherParticipant.employee', function () {
                 $otherParticipant = $this->getOtherParticipant(auth()->user()->id);
-                return $otherParticipant && $otherParticipant->employee ? (new \App\Http\Resources\EmployeeResource($otherParticipant->employee->load('user')))->toArray(request()) : null;
+                return $otherParticipant && $otherParticipant->employee ? (new EmployeeResource($otherParticipant->employee->load('user')))->toArray(request()) : null;
             }),
             'latest_message' => $this->whenLoaded('lastMessage', fn($lastMessage) => [
                 'content' => $lastMessage->content,

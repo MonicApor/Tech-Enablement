@@ -31,7 +31,7 @@ class PostResource extends JsonResource
             'is_upvoted' => $this->isUpvotedByUser(),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'employee' => $this->user && $this->user->employee ? (new EmployeeResource($this->user->employee->load('user')))->toArray(request()) : null, 
+            'employee' => $this->employee ? (new EmployeeResource($this->employee->load('user')))->toArray(request()) : null, 
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'category' => new CategoryResource($this->whenLoaded('category')),
             'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),

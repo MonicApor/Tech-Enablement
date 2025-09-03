@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Employee;
+use App\Models\Category;
+use App\Models\Comment;
+use App\Models\Chat;
+use App\Models\PostUpvote;
+use App\Models\PostAttachment;
 
 class Post extends Model
 {
@@ -68,6 +74,8 @@ class Post extends Model
     {
         return $this->hasMany(Chat::class);
     }
+
+
 
     /**
      * Get the upvotes for the post.
@@ -162,7 +170,12 @@ class Post extends Model
 
     public function upvote()
     {
-        $employeeId = auth()->user()->employee->id;
+        $user = auth()->user();
+        if (!$user->employee) {
+            throw new \Exception('User does not have an associated employee record');
+        }
+        
+        $employeeId = $user->employee->id;
         
         $existingUpvote = $this->upvotes()->where('employee_id', $employeeId)->first();
         
@@ -186,8 +199,13 @@ class Post extends Model
             return false;
         }
         
-        return $this->upvotes()->where('employee_id', auth()->user()->employee->id)->exists();
-    }
+        $user = auth()->user();
+        if (!$user->employee) {
+            return false;
+        }
+        
+        return $this->upvotes()->where('employee_id', $user->employee->id)->exists();
+    }  
 
     public function incrementViews()
     {
