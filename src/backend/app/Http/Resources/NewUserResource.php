@@ -24,7 +24,6 @@ class NewUserResource extends JsonResource
             'username' => $this->username,
             'role' => $this->role,
             'avatar' => $this->avatar,
-            'position' => $this->position,
         ];
     }
 }

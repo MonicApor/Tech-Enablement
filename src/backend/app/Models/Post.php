@@ -13,7 +13,7 @@ class Post extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id',
+        'employee_id',
         'category_id',
         'title',
         'body',
@@ -42,12 +42,14 @@ class Post extends Model
     ];
 
     /**
-     * Get the user that owns the post.
+     * Get the employee that owns the post.
      */
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 
     /**
      * Get the category that owns the post.
@@ -133,19 +135,9 @@ class Post extends Model
         return $query->where('category_id', $categoryId);
     }
 
-    public function scopeAnonIdentity($query, $anonIdentityId)
-    {
-        return $query->where('anon_identity_id', $anonIdentityId);
-    }
-
     public function getAuthorNameAttribute()
     {
-        return $this->user->username ?? 'Anonymous';
-    }
-
-    public function getAuthorInitialAttribute()
-    {
-        return substr($this->author_name, 0, 2);
+        return $this->employee->user->username ?? 'Anonymous';
     }
 
     public function getCommentsCountAttribute()
@@ -170,26 +162,23 @@ class Post extends Model
 
     public function upvote()
     {
-        $userId = auth()->id();
+        $employeeId = auth()->user()->employee->id;
         
-        // Check if user already upvoted this post
-        $existingUpvote = $this->upvotes()->where('user_id', $userId)->first();
+        $existingUpvote = $this->upvotes()->where('employee_id', $employeeId)->first();
         
         if ($existingUpvote) {
-            // User already upvoted, so remove the upvote (unlike)
             $existingUpvote->delete();
             $this->decrement('upvote_count');
-            return false; // Return false to indicate upvote was removed
+            return false;
         } else {
-            // User hasn't upvoted, so add the upvote (like)
-            $this->upvotes()->create(['user_id' => $userId]);
+            $this->upvotes()->create(['employee_id' => $employeeId]);
             $this->increment('upvote_count');
-            return true; // Return true to indicate upvote was added
+            return true;
         }
     }
 
     /**
-     * Check if the current user has upvoted this post.
+     * Check if the current employee has upvoted this post.
      */
     public function isUpvotedByUser()
     {
@@ -197,7 +186,7 @@ class Post extends Model
             return false;
         }
         
-        return $this->upvotes()->where('user_id', auth()->id())->exists();
+        return $this->upvotes()->where('employee_id', auth()->user()->employee->id)->exists();
     }
 
     public function incrementViews()

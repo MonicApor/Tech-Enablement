@@ -32,16 +32,10 @@ return new class extends Migration
             $table->string('microsoft_tenant_id')->nullable();
             $table->string('avatar')->nullable();
             $table->string('user_type')->default('Member');
-            
-            // Employee fields
-            $table->string('role')->nullable();
-            $table->string('immediate_supervisor')->nullable();
-            $table->date('hire_date')->nullable();
-            $table->string('position')->nullable();
+            $table->unsignedBigInteger('role_id')->nullable();
             
             // Status and security fields
             $table->integer('login_attempts')->default(0);
-            $table->unsignedBigInteger('user_status_id')->nullable();
 
             $table->softDeletes();
             
@@ -53,8 +47,7 @@ return new class extends Migration
             $table->index('microsoft_tenant_id');
             $table->index('email');
             
-            // Add foreign key constraint for user_status_id
-            $table->foreign('user_status_id')->references('id')->on('user_statuses')->onDelete('set null');
+
         });
     }
 

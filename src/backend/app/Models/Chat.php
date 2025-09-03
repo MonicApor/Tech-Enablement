@@ -14,8 +14,8 @@ class Chat extends Model
 
     protected $fillable = [
         'post_id',
-        'hr_user_id',
-        'employee_user_id',
+        'hr_employee_id',
+        'employee_employee_id',
         'status',
         'last_message_id',
         'last_message_at',
@@ -34,12 +34,12 @@ class Chat extends Model
 
     public function employeeUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'employee_user_id');
+        return $this->belongsTo(Employee::class, 'employee_employee_id');
     }
 
     public function hrUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'hr_user_id');
+        return $this->belongsTo(Employee::class, 'hr_employee_id');
     }
 
     public function messages(): HasMany
@@ -70,12 +70,12 @@ class Chat extends Model
 
     public function isParticipant(int $userId): bool
     {
-        return $this->employee_user_id == $userId || $this->hr_user_id == $userId;
+        return $this->employee_employee_id == $userId || $this->hr_employee_id == $userId;
     }
 
     public function getOtherParticipant(int $userId): ?User
     {
-        return $this->employee_user_id == $userId ? $this->hrUser : $this->employeeUser;
+        return $this->employee_employee_id == $userId ? $this->hrUser->user : $this->employeeUser->user;
     }
 
     public function scopeActive($query)
@@ -86,8 +86,8 @@ class Chat extends Model
     public function scopeForUser($query, int $userId)
     {
         return $query->where(function ($query) use ($userId) {
-            $query->where('hr_user_id', $userId)
-                  ->orWhere('employee_user_id', $userId);
+            $query->where('hr_employee_id', $userId)
+                  ->orWhere('employee_employee_id', $userId);
         });
     }
 

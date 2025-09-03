@@ -37,7 +37,7 @@ class ChatController extends Controller
 
       $user = auth()->user();
       $chats = Chat::forUser($user->id)
-      ->with(['post', 'employeeUser', 'hrUser', 'lastMessage'])
+      ->with(['post', 'employeeUser.employee', 'hrUser', 'lastMessage'])
       ->orderBy('last_message_at', 'desc')
       ->get();
 
@@ -104,7 +104,7 @@ class ChatController extends Controller
          ->first();
 
       if ($existingChat) {
-         $existingChat->load(['post', 'employeeUser', 'hrUser']);
+         $existingChat->load(['post', 'employeeUser.employee', 'hrUser']);
          return response()->json([
             'message' => 'Chat already exists',
             'data' => new ChatResource($existingChat)
@@ -120,7 +120,7 @@ class ChatController extends Controller
          'last_message_at' => now(),
       ]);
 
-      $chat->load(['post', 'employeeUser', 'hrUser']);
+      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
 
       return response()->json([
          'message' => 'Chat created successfully',
@@ -198,7 +198,7 @@ class ChatController extends Controller
       $this->authorize('view', $chat);
 
       $chat->markAsRead($user->id);
-      $chat->load(['post', 'employeeUser', 'hrUser', 'messages.sender']);
+      $chat->load(['post', 'employeeUser.employee', 'hrUser', 'messages.sender']);
       
       return response()->json([
          'data' => new ChatResource($chat)
@@ -235,7 +235,7 @@ class ChatController extends Controller
          'status' => $request->status,
       ]);
 
-      $chat->load(['post', 'employeeUser', 'hrUser']);
+      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
 
       $message = match($request->status) {
          'active' => 'Chat reopened',
@@ -299,7 +299,7 @@ class ChatController extends Controller
 
       $chat->update(['status' => 'closed']);
 
-      $chat->load(['post', 'employeeUser', 'hrUser']);
+      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
 
       return response()->json([
          'message' => 'Chat closed successfully',

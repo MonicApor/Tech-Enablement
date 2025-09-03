@@ -11,7 +11,7 @@ class CommentUpvote extends Model
 
     protected $fillable = [
         'comment_id',
-        'user_id',
+        'employee_id',
     ];
 
     public function comment() : BelongsTo
@@ -19,8 +19,10 @@ class CommentUpvote extends Model
         return $this->belongsTo(Comment::class);
     }
 
-    public function user() : BelongsTo
+    public function employee() : BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 }

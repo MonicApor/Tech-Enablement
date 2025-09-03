@@ -44,7 +44,7 @@ class PostController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Post::with(['user', 'category', 'comments', 'attachments'])
+        $query = Post::with(['user.employee', 'category', 'comments', 'attachments'])
             ->active();
 
         // filter by category
@@ -145,7 +145,7 @@ class PostController extends Controller
         }
         return response()->json([
             'message' => 'Post created successfully',
-            'data' => new PostResource($post->load('user', 'category', 'attachments')),
+            'data' => new PostResource($post->load('user.employee', 'category', 'attachments')),
         ], 201);
     }
 
@@ -167,7 +167,7 @@ class PostController extends Controller
     {
         $post->incrementViews();
         return response()->json([
-            'data' => new PostResource($post->load('user', 'category', 'comments', 'attachments')),
+            'data' => new PostResource($post->load('user.employee', 'category', 'comments', 'attachments')),
         ]);
     }
 
@@ -243,7 +243,7 @@ class PostController extends Controller
         
         return response()->json([
             'message' => 'Post updated successfully',
-            'data' => new PostResource($post->load('user', 'category', 'attachments')),
+            'data' => new PostResource($post->load('user.employee', 'category', 'attachments')),
         ]);
     }
 

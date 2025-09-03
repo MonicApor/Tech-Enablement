@@ -4,17 +4,20 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Employee;
+use App\Models\Roles;
+
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class EmployeeImportSeeder extends Seeder
 {
     /**
-     * Map positions to roles based on department
+     * Map positions to role IDs based on department
      */
-    private function getRoleFromPosition(string $position): string
+    private static function getRoleIdFromPosition(string $position): int
     {
-        // Management roles
+        // Management roles (Admin)
         $managementPositions = [
             'System Admin',
             'Group Leader',
@@ -39,24 +42,32 @@ class EmployeeImportSeeder extends Seeder
             'Infrastructure',
         ];
 
-        // Check management first
+        // Get role IDs from database
+        $adminRole = Roles::where('name', 'Admin')->first();
+        $hrRole = Roles::where('name', 'HR')->first();
+        $operationRole = Roles::where('name', 'Operation')->first();
+
+        // Check management first (Admin role)
         if (in_array($position, $managementPositions)) {
-            return 'management';
+            return $adminRole ? $adminRole->id : 1; // Fallback to ID 1 if not found
         }
 
         // Check HR
         if (in_array($position, $hrPositions)) {
-            return 'hr';
+            return $hrRole ? $hrRole->id : 2; // Fallback to ID 2 if not found
         }
 
         // Check operations
         if (in_array($position, $operationsPositions)) {
-            return 'operation';
+            return $operationRole ? $operationRole->id : 3; // Fallback to ID 3 if not found
         }
 
         // Default to operations if position not found
-        return 'operation';
+        return $operationRole ? $operationRole->id : 3; // Fallback to ID 3 if not found
     }
+
+
+
     /**
      * Run the database seeds.
      */
@@ -162,19 +173,17 @@ class EmployeeImportSeeder extends Seeder
                 $existingUser = User::where('email', $email)->first();
                 
                 $position = $employee['Position'];
-                $role = $this->getRoleFromPosition($position);
+                $roleId = self::getRoleIdFromPosition($position);
 
                 if (!$existingUser) {
-                    User::create([
+                    $user = User::create([
                         'first_name' => $firstName,
                         'middle_name' => $middleName,
                         'last_name' => $lastName,
                         'name' => $fullName,
                         'email' => $email,
-                        'position' => $position,
-                        'role' => $role,
-                        'immediate_supervisor' => $employee['Immediate Supervisor'],
-                        'hire_date' => $hireDate,
+                        'user_type' => 'Member',
+                        'role_id' => $roleId,
                     ]);
                     $imported++;
                 } else {
@@ -184,12 +193,20 @@ class EmployeeImportSeeder extends Seeder
                         'last_name' => $lastName,
                         'name' => $fullName,
                         'email' => $email,
-                        'position' => $position,
-                        'role' => $role,
-                        'immediate_supervisor' => $employee['Immediate Supervisor'],
-                        'hire_date' => $hireDate,
+                        'user_type' => 'Member',
+                        'role_id' => $roleId,
                     ]);
                     $updated++;
+                }
+
+                if (!$existingUser || !$existingUser->employee) {
+                    Employee::create([
+                        'user_id' => $existingUser ? $existingUser->id : $user->id,
+                        'position' => $position,
+                        'immediate_supervisor' => $employee['Immediate Supervisor'],
+                        'hire_date' => $hireDate,
+                        'status' => 'active',
+                    ]);
                 }
             } catch (\Exception $e) {
                 $errors[] = "Error processing {$employee['First Name']} {$employee['Last Name']}: " . $e->getMessage();

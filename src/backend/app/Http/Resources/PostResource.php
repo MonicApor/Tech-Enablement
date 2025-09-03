@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Http\Resources\NewUserResource;
+use App\Http\Resources\EmployeeResource;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostAttachmentResource;
@@ -31,7 +31,7 @@ class PostResource extends JsonResource
             'is_upvoted' => $this->isUpvotedByUser(),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'user' => new NewUserResource($this->whenLoaded('user')),
+            'employee' => $this->user && $this->user->employee ? (new EmployeeResource($this->user->employee->load('user')))->toArray(request()) : null, 
             'comments' => CommentResource::collection($this->whenLoaded('comments')),
             'category' => new CategoryResource($this->whenLoaded('category')),
             'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),

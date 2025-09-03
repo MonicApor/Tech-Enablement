@@ -12,7 +12,7 @@ class PostUpvote extends Model
 
     protected $fillable = [
         'post_id',
-        'user_id',
+        'employee_id',
     ];
 
     /**
@@ -24,10 +24,12 @@ class PostUpvote extends Model
     }
 
     /**
-     * Get the user that owns the upvote.
+     * Get the employee that owns the upvote.
      */
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 }
