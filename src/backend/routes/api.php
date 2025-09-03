@@ -6,7 +6,7 @@ use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\UserStructureController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Passport\Http\Controllers\AccessTokenController;
+
 use App\Http\Controllers\Auth\MicrosoftController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\TokenController;
@@ -14,7 +14,7 @@ use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\ChatMessageController;
 use App\Http\Controllers\API\BroadcastingController;
 
-Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])->middleware('throttle')->name('passport.auth');
+
 
 // Public auth routes (no authentication required)
 Route::prefix('auth')->group(function () {

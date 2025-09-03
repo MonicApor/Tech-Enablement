@@ -282,18 +282,18 @@ const Post = ({ post }) => {
         <CardHeader
           avatar={
             <Avatar sx={{ bgcolor: 'primary.main' }} aria-label="author">
-              {post.user.avatar}
+              {post.employee.user.avatar}
             </Avatar>
           }
           action={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" sx={{ marginLeft: 2 }}>
                 {post.created_at_human}
               </Typography>
               <IconButton aria-label="report" onClick={handleReport}>
                 <Flag fontSize="small" color={post.is_flagged ? 'error' : 'default'} />
               </IconButton>
-              {currentUser && currentUser.username === post.user.username && (
+              {currentUser && currentUser.username === post.employee.user.username && (
                 <IconButton aria-label="more options" onClick={handleMenuOpen}>
                   <MoreVert />
                 </IconButton>
@@ -339,7 +339,7 @@ const Post = ({ post }) => {
           subheader={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                by {post.user.username} • {post.created_at_human}
+                by {post.employee.user.username} • {post.created_at_human}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Visibility fontSize="small" color="action" />
@@ -647,7 +647,13 @@ const Post = ({ post }) => {
                                 {comment.body}
                               </Typography>
                             )}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                              }}
+                            >
                               <Typography variant="caption" color="text.secondary">
                                 by {comment.user?.username} • {comment.created_at_human}
                               </Typography>

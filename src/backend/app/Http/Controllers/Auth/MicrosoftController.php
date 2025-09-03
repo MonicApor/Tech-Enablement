@@ -45,16 +45,13 @@ class MicrosoftController extends Controller
 
             $user = $this->createOrUpdateUser($idTokenClaims, 'Employee');
 
-            $tokenResult = $user->createToken('Microsoft365Login');
-            $token = $tokenResult->token;
-            $token->expires_at = now()->addDays(30);
-            $token->save();
+            $tokenResult = $user->createToken('Microsoft365Login', ['*'], now()->addDays(30));
 
             return response()->json([
-                'access_token' => $tokenResult->accessToken,
+                'access_token' => $tokenResult->plainTextToken,
                 'refresh_token' => null,
                 'token_type' => 'Bearer',
-                'expires_at' => $token->expires_at->toDateTimeString(),
+                'expires_at' => now()->addDays(30)->toDateTimeString(),
                 'user' => $user,
             ]);
 
