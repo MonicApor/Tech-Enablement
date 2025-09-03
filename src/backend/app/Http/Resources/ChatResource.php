@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;    
-use App\Http\Resources\NewUserResource;
+use App\Http\Resources\EmployeeResource;
 
 class ChatResource extends JsonResource
 {
@@ -23,8 +23,12 @@ class ChatResource extends JsonResource
                 'title' => $post->title,
                 'content' => $post->body,
             ]),
-            'hr_user' => $this->whenLoaded('hrUser', fn($hrUser) => new NewUserResource($hrUser)),
-            'employee_user' => $this->whenLoaded('employeeUser', fn($employeeUser) => new NewUserResource($employeeUser)),
+            'hr_user' => $this->whenLoaded('hrUser.employee', function () {
+                return $this->hrUser && $this->hrUser->employee ? (new EmployeeResource($this->hrUser->employee->load('user')))->toArray(request()) : null;
+            }),
+            'employee_user' => $this->whenLoaded('employeeUser.employee', function () {
+                return $this->employeeUser && $this->employeeUser->employee ? (new EmployeeResource($this->employeeUser->employee->load('user')))->toArray(request()) : null;
+            }),
             'latest_message' => $this->whenLoaded('lastMessage', fn($lastMessage) => [
                 'id' => $lastMessage->id,
                 'content' => $lastMessage->content,

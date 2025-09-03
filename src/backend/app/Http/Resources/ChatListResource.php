@@ -17,11 +17,10 @@ class ChatListResource extends JsonResource
                 'id' => $this->post->id,
                 'title' => $this->post->title,
             ],
-            'other_participant' => $this->getOtherParticipant($user->id) ? [
-                'id' => $this->getOtherParticipant($user->id)->id,
-                'name' => $this->getOtherParticipant($user->id)->name,
-                'avatar' => $this->getOtherParticipant($user->id)->avatar,
-            ] : null,
+            'other_participant' => $this->whenLoaded('otherParticipant.employee', function () {
+                $otherParticipant = $this->getOtherParticipant(auth()->user()->id);
+                return $otherParticipant && $otherParticipant->employee ? (new \App\Http\Resources\EmployeeResource($otherParticipant->employee->load('user')))->toArray(request()) : null;
+            }),
             'latest_message' => $this->whenLoaded('lastMessage', fn($lastMessage) => [
                 'content' => $lastMessage->content,
             ]),

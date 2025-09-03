@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Chat;
-use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ChatPolicy
@@ -11,98 +11,98 @@ class ChatPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the employee can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(Employee $employee): bool
     {
-        return true; // Any authenticated user can view their chats
+        return true; // Any authenticated employee can view their chats
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether the employee can view the model.
      */
-    public function view(User $user, Chat $chat): bool
+    public function view(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether the employee can create models.
      */
-    public function create(User $user): bool
+    public function create(Employee $employee): bool
     {
-        return true; // Any authenticated user can create chats
+        return true; // Any authenticated employee can create chats
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the employee can update the model.
      */
-    public function update(User $user, Chat $chat): bool
+    public function update(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the employee can delete the model.
      */
-    public function delete(User $user, Chat $chat): bool
+    public function delete(Employee $employee, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isActive();
+        return $chat->hr_employee_id === $employee->id && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can read messages in the chat.
+     * Determine whether the employee can read messages in the chat.
      */
-    public function readMessages(User $user, Chat $chat): bool
+    public function readMessages(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can send messages in the chat.
+     * Determine whether the employee can send messages in the chat.
      */
-    public function sendMessage(User $user, Chat $chat): bool
+    public function sendMessage(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can delete messages in the chat.
+     * Determine whether the employee can delete messages in the chat.
      */
-    public function deleteMessage(User $user, Chat $chat): bool
+    public function deleteMessage(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can close the chat.
+     * Determine whether the employee can close the chat.
      */
-    public function close(User $user, Chat $chat): bool
+    public function close(Employee $employee, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $chat->isParticipant($employee->user->id) && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can archive the chat.
+     * Determine whether the employee can archive the chat.
      */
-    public function archive(User $user, Chat $chat): bool
+    public function archive(Employee $employee, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isActive();
+        return $chat->hr_employee_id === $employee->id && $chat->isActive();
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determine whether the employee can restore the model.
      */
-    public function restore(User $user, Chat $chat): bool
+    public function restore(Employee $employee, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isArchived();
+        return $chat->hr_employee_id === $employee->id && $chat->isArchived();
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Determine whether the employee can permanently delete the model.
      */
-    public function forceDelete(User $user, Chat $chat): bool
+    public function forceDelete(Employee $employee, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id;
+        return $chat->hr_employee_id === $employee->id;
     }
 }

@@ -4,6 +4,7 @@ use App\Http\Controllers\API\HomeController;
 use App\Http\Controllers\API\PostController;
 use App\Http\Controllers\API\CommentController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\UserStructureController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
 use App\Http\Controllers\Auth\MicrosoftController;

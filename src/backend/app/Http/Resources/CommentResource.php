@@ -24,7 +24,9 @@ class CommentResource extends JsonResource
             'parent_id' => $this->parent_id,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'user' => new NewUserResource($this->whenLoaded('user')),
+            'employee' => $this->whenLoaded('user.employee', function () {
+                return $this->user && $this->user->employee ? (new \App\Http\Resources\EmployeeResource($this->user->employee->load('user')))->toArray(request()) : null;
+            }),
             'replies' => CommentResource::collection($this->whenLoaded('replies')),
             'created_at_human' => $this->created_at->diffForHumans(),
         ];

@@ -22,10 +22,12 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('chat_id')->references('id')->on('chats')->onDelete('cascade');
-            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('sender_id')->references('id')->on('employees')->onDelete('cascade');
 
             $table->index(['chat_id', 'created_at']); //queries to get all messages for a chat
             $table->index(['chat_id', 'read_at']); //queries when the message is unread
+
+            $table->softDeletes();
         });
     }
 

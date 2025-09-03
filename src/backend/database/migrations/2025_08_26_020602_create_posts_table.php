@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->string('title');
             $table->text('body');
             $table->enum('status', ['active', 'flagged', 'resolved'])->default('active');
@@ -23,6 +23,8 @@ return new class extends Migration
             $table->timestamp('flaged_at')->nullable();
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 

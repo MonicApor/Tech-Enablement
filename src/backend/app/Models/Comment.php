@@ -14,7 +14,7 @@ class Comment extends Model
 
     protected $fillable = [
         'post_id',
-        'user_id',
+        'employee_id',
         'body',
         'upvote_count',
         'parent_id',
@@ -37,10 +37,12 @@ class Comment extends Model
         return $this->belongsTo(Post::class);
     }
 
-    public function user() : BelongsTo
+    public function employee() : BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 
     public function parent() : BelongsTo
     {
@@ -74,7 +76,7 @@ class Comment extends Model
 
     public function getAuthorNameAttribute()
     {
-        return $this->user->username ?? 'Anonymous';
+        return $this->employee->user->username ?? 'Anonymous';
     }
 
     public function getAuthorInitialAttribute()

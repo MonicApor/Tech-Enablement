@@ -35,7 +35,7 @@ class CommentController extends Controller
      */
     public function index(Post $post): JsonResponse
     {
-        $comments = $post->topLevelComments()->with(['user', 'replies.user'])->orderBy('created_at', 'desc')->get();
+        $comments = $post->topLevelComments()->with(['user.employee', 'replies.user.employee'])->orderBy('created_at', 'desc')->get();
         return response()->json([
             'data' => CommentResource::collection($comments)
         ]);
@@ -67,7 +67,7 @@ class CommentController extends Controller
         $comment = Comment::create($data);
         return response()->json([
             'message' => 'Comment created successfully',
-            'data' => new CommentResource($comment->load('user')),
+            'data' => new CommentResource($comment->load('user.employee')),
         ], 201);
     }
 
@@ -88,7 +88,7 @@ class CommentController extends Controller
     public function show(Comment $comment): JsonResponse
     {
         return response()->json([
-            'data' => new CommentResource($comment->load('user')),
+            'data' => new CommentResource($comment->load('user.employee')),
         ]);
     }
 
