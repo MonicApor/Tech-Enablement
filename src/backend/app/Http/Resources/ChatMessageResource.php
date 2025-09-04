@@ -31,8 +31,9 @@ class ChatMessageResource extends JsonResource
             'is_from_employee' => $this->isFromEmployee(),
             'sender' => $this->sender ? [
                 'id' => $this->sender->id,
-                'name' => $this->sender->name,
-                'email' => $this->sender->email,
+                'name' => $this->sender->user->name ?? null,
+                'email' => $this->sender->user->email ?? null,
+                'username' => $this->sender->user->username ?? null,
             ] : null,
         ];
     }

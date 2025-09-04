@@ -12,16 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('flag_post_statuses', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            // $table->timestamps(); no need for now
+            // $table->timestamps(); np need for now
         });
 
-        DB::table('roles')->insert([
-            ['name' => 'Admin'],
-            ['name' => 'HR'],
-            ['name' => 'Operation'],
+        DB::table('flag_post_statuses')->insert([
+            ['name' => 'Open'],
+            ['name' => 'In Review'],
+            ['name' => 'Escalated'],
+            ['name' => 'Resolved'],
         ]);
     }
 
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('flag_post_statuses');
     }
 };

@@ -18,14 +18,23 @@ class ChatListResource extends JsonResource
                 'id' => $this->post->id,
                 'title' => $this->post->title,
             ],
-            'other_participant' => $this->whenLoaded('otherParticipant.employee', function () {
-                $otherParticipant = $this->getOtherParticipant(auth()->user()->id);
-                return $otherParticipant && $otherParticipant->employee ? (new EmployeeResource($otherParticipant->employee->load('user')))->toArray(request()) : null;
+            'other_participant' => $this->when(auth()->user()->isEmployee(), function () {
+                $otherParticipant = $this->getOtherParticipant(auth()->user()->employee->id);
+                return $otherParticipant ? [
+                    'id' => $otherParticipant->id,
+                    'position' => $otherParticipant->position,
+                    'user' => $otherParticipant->user ? [
+                        'id' => $otherParticipant->user->id,
+                        'username' => $otherParticipant->user->username,
+                        'name' => $otherParticipant->user->name,
+                        'avatar' => $otherParticipant->user->avatar,
+                    ] : null,
+                ] : null;
             }),
             'latest_message' => $this->whenLoaded('lastMessage', fn($lastMessage) => [
                 'content' => $lastMessage->content,
             ]),
-            'unread_count' => $this->getUnreadMessagesCount($user->id),
+            'unread_count' => $user->isEmployee() ? $this->getUnreadMessagesCount($user->employee->id) : 0,
             'total_messages' => $this->messages()->count(),
             'status' => $this->status,
             'last_message_at' => $this->last_message_at,

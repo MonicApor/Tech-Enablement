@@ -25,11 +25,15 @@ function DataTable(props) {
     handleAdd,
     toolbar = true,
     actions = true,
+    actionsAdd = true,
+    customRenderers = {},
   } = props;
 
   return (
     <Box sx={{ width: '100%' }}>
-      {toolbar && <TableToolbar handleSearch={handleSearch} handleAdd={handleAdd} />}
+      {toolbar && (
+        <TableToolbar handleSearch={handleSearch} handleAdd={handleAdd} actionsAdd={actionsAdd} />
+      )}
 
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
@@ -48,6 +52,7 @@ function DataTable(props) {
               handleDelete={handleDelete}
               handleEdit={handleEdit}
               actions={actions}
+              customRenderers={customRenderers}
             />
           </Table>
         </TableContainer>
@@ -75,6 +80,8 @@ DataTable.propTypes = {
   handleAdd: PropTypes.func,
   toolbar: PropTypes.bool,
   actions: PropTypes.bool,
+  actionsAdd: PropTypes.bool,
+  customRenderers: PropTypes.object,
 };
 
 export default DataTable;

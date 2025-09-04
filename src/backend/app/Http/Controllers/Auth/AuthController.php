@@ -127,6 +127,95 @@ class AuthController extends Controller
     }
 
     /**
+     * Issue OAuth token for password grant
+     * 
+     * @OA\Post(
+     *     path="/api/oauth/token",
+     *     summary="Issue OAuth token for password grant",
+     *     tags={"OAuth"},
+     *     security={},
+     *     @OA\RequestBody(required=true, @OA\JsonContent(required={"grant_type", "username", "password", "client_id", "client_secret"}, @OA\Property(property="grant_type", type="string"), @OA\Property(property="username", type="string"), @OA\Property(property="password", type="string"), @OA\Property(property="client_id", type="string"), @OA\Property(property="client_secret", type="string"))),
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="access_token", type="string"), @OA\Property(property="token_type", type="string"), @OA\Property(property="expires_in", type="integer"))),
+     *     @OA\Response(response=401, description="Invalid credentials", @OA\JsonContent(ref="#/components/schemas/Error"))
+     * )
+     */
+    public function issueToken(Request $request)
+    {
+        $request->validate([
+            'grant_type' => 'required|string',
+            'username' => 'required|email',
+            'password' => 'required|string',
+            'client_id' => 'required|string',
+            'client_secret' => 'required|string',
+        ]);
+
+        // Validate client credentials (you can make this more secure)
+        if ($request->client_id !== config('auth.oauth.client_id') || 
+            $request->client_secret !== config('auth.oauth.client_secret')) {
+            return response()->json(['error' => 'Invalid client credentials'], 401);
+        }
+
+        try {
+            $user = User::where('email', $request->username)->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+
+            if (!$user->email_verified_at) {
+                return response()->json(['error' => 'Account not activated'], 401);
+            }
+
+            $tokenResult = $user->createToken('PasswordGrant', ['*'], now()->addDays(30));
+
+            return response()->json([
+                'access_token' => $tokenResult->plainTextToken,
+                'token_type' => 'Bearer',
+                'expires_in' => 30 * 24 * 60 * 60, // 30 days in seconds
+                'refresh_token' => null, // Sanctum doesn't provide refresh tokens by default
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Token generation failed'], 500);
+        }
+    }
+
+    /**
+     * Refresh OAuth token
+     * 
+     * @OA\Post(
+     *     path="/api/oauth/refresh",
+     *     summary="Refresh OAuth token",
+     *     tags={"OAuth"},
+     *     security={},
+     *     @OA\RequestBody(required=true, @OA\JsonContent(required={"grant_type", "refresh_token", "client_id", "client_secret"}, @OA\Property(property="grant_type", type="string"), @OA\Property(property="refresh_token", type="string"), @OA\Property(property="client_id", type="string"), @OA\Property(property="client_secret", type="string"))),
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="access_token", type="string"), @OA\Property(property="token_type", type="string"), @OA\Property(property="expires_in", type="integer"))),
+     *     @OA\Response(response=401, description="Invalid refresh token", @OA\JsonContent(ref="#/components/schemas/Error"))
+     * )
+     */
+    public function refreshToken(Request $request)
+    {
+        $request->validate([
+            'grant_type' => 'required|string',
+            'refresh_token' => 'required|string',
+            'client_id' => 'required|string',
+            'client_secret' => 'required|string',
+        ]);
+
+        if ($request->client_id !== config('auth.oauth.client_id') || 
+            $request->client_secret !== config('auth.oauth.client_secret')) {
+            return response()->json(['error' => 'Invalid client credentials'], 401);
+        }
+
+        try {            
+            return response()->json(['error' => 'Refresh tokens not implemented with Sanctum'], 501);
+            
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Token refresh failed'], 500);
+        }
+    }
+
+    /**
      * Login user with email and password
      * 
      * @OA\Post(
@@ -158,12 +247,12 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Please activate your account first'], 401);
             }
 
-            $token = $user->createToken('AuthToken')->accessToken;
+            $tokenResult = $user->createToken('AuthToken', ['*'], now()->addDays(30));
 
             return response()->json([
                 'message' => 'Login successful',
                 'user' => new NewUserResource($user),
-                'token' => $token
+                'token' => $tokenResult->plainTextToken
             ], 200);
 
         } catch (Exception $e) {

@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\TokenController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\ChatMessageController;
 use App\Http\Controllers\API\BroadcastingController;
+use App\Http\Controllers\API\FlagPostController;
 
 
 
@@ -24,6 +25,12 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/verify-token', [TokenController::class, 'verify']);
 });
+
+// OAuth token route for password grant
+Route::post('/oauth/token', [AuthController::class, 'issueToken']);
+
+// OAuth refresh token route
+Route::post('/oauth/refresh', [AuthController::class, 'refreshToken']);
 
 // Protected auth routes (authentication required)
 Route::prefix('auth')->middleware('auth:api')->group(function () {
@@ -72,6 +79,13 @@ Route::middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('/chats/{chat}/messages', ChatMessageController::class);
 });
+
+// Flag post routes
+Route::middleware('auth:api')->group(function () {
+    Route::get('/flag-posts/statuses', [FlagPostController::class, 'flagPostStatuses']);
+    Route::apiResource('/flag-posts', FlagPostController::class);
+});
+
 
 Route::get('/', [HomeController::class, '__invoke']);
 

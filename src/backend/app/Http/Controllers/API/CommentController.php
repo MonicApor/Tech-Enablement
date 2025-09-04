@@ -35,7 +35,13 @@ class CommentController extends Controller
      */
     public function index(Post $post): JsonResponse
     {
-        $comments = $post->topLevelComments()->with(['employee.user', 'replies.employee.user'])->orderBy('created_at', 'desc')->get();
+        $comments = $post->topLevelComments()->with([
+            'employee.user', 
+            'replies' => function($query) {
+                $query->with('employee.user');
+            }
+        ])->orderBy('created_at', 'asc')->get();
+        
         return response()->json([
             'data' => CommentResource::collection($comments)
         ]);

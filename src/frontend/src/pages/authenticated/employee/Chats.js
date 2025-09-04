@@ -96,7 +96,7 @@ const Chats = () => {
       }
 
       let employeeUserId;
-      if (currentUser.role === 'hr') {
+      if (currentUser.role.id === 2) {
         if (!postAuthorId) {
           throw new Error('Post author ID is required for HR users');
         }

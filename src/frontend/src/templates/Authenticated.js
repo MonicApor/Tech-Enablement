@@ -41,11 +41,11 @@ function Authenticated() {
     }
 
     if (user) {
-      const { role } = user;
+      const { role_id } = user;
 
       // Route-based template selection
       if (location.pathname.includes('/admin')) {
-        if (role !== 'System Admin') {
+        if (role_id !== 1) {
           setLayout(<Unauthorized />);
           return;
         }
@@ -54,11 +54,11 @@ function Authenticated() {
         setLayout(<Employee />);
       } else {
         // Default template based on role
-        switch (role) {
-          case 'System Admin':
+        switch (role_id) {
+          case 1:
             setLayout(<Admin />);
             break;
-          case 'Employee':
+          case 2:
             setLayout(<Employee />);
             break;
           default:

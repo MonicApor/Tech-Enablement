@@ -118,4 +118,17 @@ return [
 
     'password_timeout' => 10800,
 
+    /*
+    |--------------------------------------------------------------------------
+    | OAuth Client Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for OAuth client credentials used in password grant flow
+    |
+    */
+    'oauth' => [
+        'client_id' => env('OAUTH_CLIENT_ID', '2'),
+        'client_secret' => env('OAUTH_CLIENT_SECRET', 'm9wfNoY0kBjNtyPAD0h5JFdkDqdm0FfM8lalkwtT'),
+    ],
+
 ];
