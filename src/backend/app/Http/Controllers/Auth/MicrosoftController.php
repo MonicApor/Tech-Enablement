@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,18 +44,15 @@ class MicrosoftController extends Controller
                 return response()->json(['error' => $validationError], 403);
             }
 
-            $user = $this->createOrUpdateUser($idTokenClaims, 'Employee');
+            $user = $this->createOrUpdateUser($idTokenClaims, 2);
 
-            $tokenResult = $user->createToken('Microsoft365Login');
-            $token = $tokenResult->token;
-            $token->expires_at = now()->addDays(30);
-            $token->save();
+            $tokenResult = $user->createToken('Microsoft365Login', ['*'], now()->addDays(30));
 
             return response()->json([
-                'access_token' => $tokenResult->accessToken,
+                'access_token' => $tokenResult->plainTextToken,
                 'refresh_token' => null,
                 'token_type' => 'Bearer',
-                'expires_at' => $token->expires_at->toDateTimeString(),
+                'expires_at' => now()->addDays(30)->toDateTimeString(),
                 'user' => $user,
             ]);
 
@@ -197,13 +195,26 @@ class MicrosoftController extends Controller
             'email_verified_at' => now(),
             'microsoft_tenant_id' => $idTokenClaims['tid'] ?? null,
             'user_type' => 'Member',
-            'role' => $userRole,
+            'role_id' => $userRole,
         ];
 
-        return User::updateOrCreate(
+        $user = User::updateOrCreate(
             ['microsoft_id' => $microsoftId],
             $userData
         );
+
+        // Create or update employee record if it doesn't exist
+        if (!$user->employee) {
+            Employee::create([
+                'user_id' => $user->id,
+                'position' => 'Employee', // Default position
+                'department' => 'General', // Default department
+                'hire_date' => now(),
+                'status' => 'active',
+            ]);
+        }
+
+        return $user;
     }
 
 }

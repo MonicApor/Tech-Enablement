@@ -10,7 +10,7 @@ import InputBase from '@mui/material/InputBase';
 import Button from 'components/atoms/Button';
 
 function TableToolbar(props) {
-  const { handleSearch, handleAdd } = props;
+  const { handleSearch, handleAdd, actionsAdd } = props;
   const { t } = useTranslation();
   const searchEl = useRef(null);
   const [submitted, setSubmitted] = useState(false);
@@ -56,9 +56,11 @@ function TableToolbar(props) {
         </Box>
       </Box>
 
-      <Button onClick={() => handleAdd()} startIcon={<AddIcon />}>
-        {t('labels.add_new')}
-      </Button>
+      {actionsAdd && (
+        <Button onClick={() => handleAdd()} startIcon={<AddIcon />}>
+          {t('labels.add_new')}
+        </Button>
+      )}
     </Box>
   );
 }
@@ -66,6 +68,7 @@ function TableToolbar(props) {
 TableToolbar.propTypes = {
   handleSearch: PropTypes.func,
   handleAdd: PropTypes.func,
+  actionsAdd: PropTypes.bool,
 };
 
 export default TableToolbar;

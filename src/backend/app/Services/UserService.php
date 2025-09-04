@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Employee;
+
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +65,35 @@ class UserService
             throw new Exception('Failed to create user: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Create a new employee
+     *
+     * @param User $user
+     * @param array $employeeData
+     * @return Employee
+     * @throws Exception
+     */
+    public function createEmployee(User $user, array $employeeData): Employee
+    {
+        DB::beginTransaction();
+        try {
+            // Check if user already has an employee record
+            if ($user->employee()->exists()) {
+                throw new Exception('User already has an employee record');
+            }
+
+            $employee = Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
+            
+            DB::commit();
+            return $employee;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw new Exception('Failed to create employee: ' . $e->getMessage());
+        }
+    }
+
+
 
     /**
      * Update existing user with password for traditional login

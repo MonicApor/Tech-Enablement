@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::table('chats', function (Blueprint $table) {
             // Drop the existing foreign key constraints
             $table->dropForeign(['post_id']);
-            $table->dropForeign(['hr_user_id']);
-            $table->dropForeign(['employee_user_id']);
+            $table->dropForeign(['hr_employee_id']);
+            $table->dropForeign(['employee_employee_id']);
             
             // Re-add them without cascade delete
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('restrict');
-            $table->foreign('hr_user_id')->references('id')->on('users')->onDelete('restrict');
-            $table->foreign('employee_user_id')->references('id')->on('users')->onDelete('restrict');
+            $table->foreign('hr_employee_id')->references('id')->on('employees')->onDelete('restrict');
+            $table->foreign('employee_employee_id')->references('id')->on('employees')->onDelete('restrict');
         });
 
         Schema::table('chat_messages', function (Blueprint $table) {
@@ -30,7 +30,7 @@ return new class extends Migration
             
             // Re-add them without cascade delete
             $table->foreign('chat_id')->references('id')->on('chats')->onDelete('restrict');
-            $table->foreign('sender_id')->references('id')->on('users')->onDelete('restrict');
+            $table->foreign('sender_id')->references('id')->on('employees')->onDelete('restrict');
         });
     }
 
@@ -42,13 +42,13 @@ return new class extends Migration
         Schema::table('chats', function (Blueprint $table) {
             // Drop the restrict constraints
             $table->dropForeign(['post_id']);
-            $table->dropForeign(['hr_user_id']);
-            $table->dropForeign(['employee_user_id']);
+            $table->dropForeign(['hr_employee_id']);
+            $table->dropForeign(['employee_employee_id']);
             
             // Re-add the cascade constraints
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
-            $table->foreign('hr_user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('employee_user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('hr_employee_id')->references('id')->on('employees')->onDelete('cascade');
+            $table->foreign('employee_employee_id')->references('id')->on('employees')->onDelete('cascade');
         });
 
         Schema::table('chat_messages', function (Blueprint $table) {
@@ -58,7 +58,7 @@ return new class extends Migration
             
             // Re-add the cascade constraints
             $table->foreign('chat_id')->references('id')->on('chats')->onDelete('cascade');
-            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('sender_id')->references('id')->on('employees')->onDelete('cascade');
         });
     }
 };

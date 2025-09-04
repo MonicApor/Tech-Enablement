@@ -52,7 +52,14 @@ export default function Employee() {
           </Box>
 
           {/* Main Content */}
-          <Box sx={{ width: '100%' }}>
+          <Box
+            sx={{
+              width: '100%',
+              // maxHeight: 'calc(100vh - 200px)',
+              // overflow: 'auto',
+              // scrollbarWidth: 'thin',
+            }}
+          >
             <Outlet />
           </Box>
 

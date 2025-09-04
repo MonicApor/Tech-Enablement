@@ -7,13 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Employee;
+use App\Models\Category;
+use App\Models\Comment;
+use App\Models\Chat;
+use App\Models\PostUpvote;
+use App\Models\PostAttachment;
 
 class Post extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id',
+        'employee_id',
         'category_id',
         'title',
         'body',
@@ -42,12 +48,14 @@ class Post extends Model
     ];
 
     /**
-     * Get the user that owns the post.
+     * Get the employee that owns the post.
      */
-    public function user(): BelongsTo
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 
     /**
      * Get the category that owns the post.
@@ -66,6 +74,8 @@ class Post extends Model
     {
         return $this->hasMany(Chat::class);
     }
+
+
 
     /**
      * Get the upvotes for the post.
@@ -133,19 +143,9 @@ class Post extends Model
         return $query->where('category_id', $categoryId);
     }
 
-    public function scopeAnonIdentity($query, $anonIdentityId)
-    {
-        return $query->where('anon_identity_id', $anonIdentityId);
-    }
-
     public function getAuthorNameAttribute()
     {
-        return $this->user->username ?? 'Anonymous';
-    }
-
-    public function getAuthorInitialAttribute()
-    {
-        return substr($this->author_name, 0, 2);
+        return $this->employee->user->username ?? 'Anonymous';
     }
 
     public function getCommentsCountAttribute()
@@ -170,26 +170,37 @@ class Post extends Model
 
     public function upvote()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
+        if (!$user->employee) {
+            throw new \Exception('User does not have an associated employee record');
+        }
         
-        // Check if user already upvoted this post
-        $existingUpvote = $this->upvotes()->where('user_id', $userId)->first();
+        $employeeId = $user->employee->id;
+        
+        $existingUpvote = PostUpvote::withTrashed()
+            ->where('post_id', $this->id)
+            ->where('employee_id', $employeeId)
+            ->first();
         
         if ($existingUpvote) {
-            // User already upvoted, so remove the upvote (unlike)
-            $existingUpvote->delete();
-            $this->decrement('upvote_count');
-            return false; // Return false to indicate upvote was removed
+            if ($existingUpvote->trashed()) {
+                $existingUpvote->restore();
+                $this->increment('upvote_count');
+                return true;
+            } else {
+                $existingUpvote->delete();
+                $this->decrement('upvote_count');
+                return false;
+            }
         } else {
-            // User hasn't upvoted, so add the upvote (like)
-            $this->upvotes()->create(['user_id' => $userId]);
+            $this->upvotes()->create(['employee_id' => $employeeId]);
             $this->increment('upvote_count');
-            return true; // Return true to indicate upvote was added
+            return true;
         }
     }
 
     /**
-     * Check if the current user has upvoted this post.
+     * Check if the current employee has upvoted this post.
      */
     public function isUpvotedByUser()
     {
@@ -197,8 +208,13 @@ class Post extends Model
             return false;
         }
         
-        return $this->upvotes()->where('user_id', auth()->id())->exists();
-    }
+        $user = auth()->user();
+        if (!$user->employee) {
+            return false;
+        }
+        
+        return $this->upvotes()->where('employee_id', $user->employee->id)->exists();
+    }  
 
     public function incrementViews()
     {
@@ -233,7 +249,7 @@ class Post extends Model
 
     public function topLevelComments(): HasMany
     {
-        return $this->hasMany(Comment::class)->whereNull('parent_id');
+        return $this->hasMany(Comment::class)->whereNull('parent_id')->orderBy('created_at', 'desc');
     }
 
     public function allComments(): HasMany
@@ -269,7 +285,7 @@ class Post extends Model
             (upvote_count + total_comments_count + replies_count) / 
             (TIMESTAMPDIFF(HOUR, created_at, NOW()) + 1) DESC
         ')
-        ->with('category');
+        ->with(['category', 'employee.user', 'comments.employee.user']);
     }
 
     /**

@@ -1,21 +1,18 @@
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import {
-  Add as AddIcon,
-  BarChart,
-  Chat as ChatIcon,
-  Group as GroupIcon,
-} from '@mui/icons-material';
+import { Add as AddIcon, Chat as ChatIcon, Flag } from '@mui/icons-material';
 import { Box, Button, Card, CardContent, CardHeader } from '@mui/material';
 
 function Sidebar() {
   const navigate = useNavigate();
+  const currentUser = useSelector((state) => state.profile.user);
   const location = useLocation();
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <Card sx={{ boxShadow: 2, borderRadius: 1 }}>
-      <CardHeader title="Quick Actions" />
+      <CardHeader title={t('sidebarANON.title')} />
       <CardContent sx={{ pt: 0 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Button
@@ -28,20 +25,23 @@ function Sidebar() {
             }}
             onClick={() => navigate('/employee')}
           >
-            New Feedback
+            {t('sidebarANON.new_feedback')}
           </Button>
-          <Button
-            variant="outline"
-            startIcon={<BarChart />}
-            sx={{
-              justifyContent: 'flex-start',
-              textTransform: 'none',
-              backgroundColor: 'transparent',
-            }}
-          >
-            Analytics
-          </Button>
-          <Button
+          {currentUser && currentUser.role_id === 2 && (
+            <Button
+              variant="outline"
+              startIcon={<Flag />}
+              sx={{
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                backgroundColor: 'transparent',
+              }}
+              onClick={() => navigate('/employee/flag-post')}
+            >
+              {t('FlaggedPostsANON.title')}
+            </Button>
+          )}
+          {/* <Button
             variant="outline"
             startIcon={<GroupIcon />}
             sx={{
@@ -51,7 +51,7 @@ function Sidebar() {
             }}
           >
             Team Insights
-          </Button>
+          </Button> */}
           <Button
             variant={location.pathname === '/employee/chats' ? 'contained' : 'outline'}
             startIcon={<ChatIcon />}
@@ -62,7 +62,7 @@ function Sidebar() {
               backgroundColor: location.pathname === '/employee/chats' ? undefined : 'transparent',
             }}
           >
-            Conversations
+            {t('sidebarANON.chats')}
           </Button>
         </Box>
       </CardContent>

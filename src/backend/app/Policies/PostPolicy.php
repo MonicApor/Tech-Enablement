@@ -15,7 +15,8 @@ class PostPolicy
      */
     public function create(User $user): bool
     {
-        return true; // Any authenticated user can create posts
+        // User must have an associated employee record to create posts
+        return $user->isEmployee();
     }
 
     /**
@@ -23,8 +24,8 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        // Users can update their own posts
-        return $user->id === $post->user_id;
+        // Users can update their own posts (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $post->employee_id;
     }
 
     /**
@@ -32,7 +33,7 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        // Users can delete their own posts
-        return $user->id === $post->user_id;
+        // Users can delete their own posts (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $post->employee_id;
     }
 }

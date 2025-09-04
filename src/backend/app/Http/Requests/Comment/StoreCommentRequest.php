@@ -42,8 +42,11 @@ class StoreCommentRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $this->merge([
-            'user_id' => auth()->user()->id,
-        ]);
+        $user = auth()->user();
+        if ($user->employee) {
+            $this->merge([
+                'employee_id' => $user->employee->id,
+            ]);
+        }
     }
 }

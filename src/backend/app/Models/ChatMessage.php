@@ -33,7 +33,7 @@ class ChatMessage extends Model
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(Employee::class, 'sender_id');
     }
 
     public function isRead(): bool
@@ -48,18 +48,18 @@ class ChatMessage extends Model
 
     public function isFromHR(): bool
     {
-        return $this->sender_id === $this->chat->hr_user_id;
+        return $this->sender_id === $this->chat->hr_employee_id;
     }
 
     public function isFromEmployee(): bool
     {
-        return $this->sender_id === $this->chat->employee_user_id;
+        return $this->sender_id === $this->chat->employee_employee_id;
     }
 
     public function getSenderName(): string
     {
         if ($this->isFromHR()) {
-            return $this->sender->name ?? 'HR Manager';
+            return $this->sender->user->name ?? 'HR Manager';
         }
         return 'Anonymous Employee';
     }
@@ -90,7 +90,7 @@ class ChatMessage extends Model
     public function getSenderDisplayName(): string
     {
         if ($this->isFromHR()) {
-            return $this->sender->name ?? 'HR Manager';
+            return $this->sender->user->name ?? 'HR Manager';
         }
         return 'Anonymous Employee';
     }

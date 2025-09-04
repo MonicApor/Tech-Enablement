@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import {
   Button,
@@ -15,12 +16,23 @@ const DeleteConfirmDialog = ({
   open,
   onClose,
   onConfirm,
-  title = 'Delete Confirmation',
-  message = 'Are you sure you want to delete this item? This action cannot be undone.',
+  title,
+  message,
   loading = false,
-  confirmText = 'Delete',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
 }) => {
+  const { t } = useTranslation();
+  const defaultTitle = t('PostANON.defaultDeleteTitle');
+  const defaultMessage = t('PostANON.defaultDeleteMessage');
+  const defaultConfirmText = t('PostANON.defaultDeleteConfirmText');
+  const defaultCancelText = t('PostANON.defaultDeleteCancelText');
+
+  const finalTitle = title || defaultTitle;
+  const finalMessage = message || defaultMessage;
+  const finalConfirmText = confirmText || defaultConfirmText;
+  const finalCancelText = cancelText || defaultCancelText;
+
   const handleConfirm = () => {
     onConfirm();
   };
@@ -58,7 +70,7 @@ const DeleteConfirmDialog = ({
       >
         <WarningIcon color="error" />
         <Typography variant="h6" component="span" fontWeight={600}>
-          {title}
+          {finalTitle}
         </Typography>
       </DialogTitle>
 
@@ -70,7 +82,7 @@ const DeleteConfirmDialog = ({
             fontSize: '0.95rem',
             lineHeight: 1.5,
           }}
-          dangerouslySetInnerHTML={{ __html: message }}
+          dangerouslySetInnerHTML={{ __html: finalMessage }}
         />
       </DialogContent>
 
@@ -92,7 +104,7 @@ const DeleteConfirmDialog = ({
             },
           }}
         >
-          {cancelText}
+          {finalCancelText}
         </Button>
         <Button
           onClick={handleConfirm}
@@ -110,7 +122,7 @@ const DeleteConfirmDialog = ({
             },
           }}
         >
-          {loading ? 'Deleting...' : confirmText}
+          {loading ? t('loadingDeleting') : finalConfirmText}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,6 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useCategories } from 'services/categories.service';
 import { createPost, usePosts } from 'services/post.service';
 import { defaultValuesPost, postSchema } from 'validations/post';
@@ -25,6 +26,7 @@ import FileUpload from 'components/atoms/FileUpload';
 import Post from 'components/molecules/Post';
 
 function Feed() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchDisplay, setSearchDisplay] = useState('');
@@ -107,11 +109,11 @@ function Feed() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Card>
-        <CardHeader title="Share Anonymous Feedback" />
+        <CardHeader title={t('FeedANON.title')} />
         <CardContent component="form" onSubmit={handleSubmit(onSubmit)}>
           <TextField
             fullWidth
-            placeholder="Enter your feedback title..."
+            placeholder={t('FeedANON.title')}
             variant="outlined"
             sx={{ mb: 2 }}
             {...register('title')}
@@ -122,7 +124,7 @@ function Feed() {
             fullWidth
             multiline
             rows={4}
-            placeholder="What's on your mind? Your feedback is completely anonymous..."
+            placeholder={t('PostANON.body')}
             variant="outlined"
             sx={{ mb: 2 }}
             {...register('body')}
@@ -156,7 +158,7 @@ function Feed() {
           </Box>
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 2 }}>
             <Button variant="contained" startIcon={<Message />} type="submit">
-              {postsLoading ? <CircularProgress size={20} /> : 'Post Feedback'}
+              {postsLoading ? <CircularProgress size={20} /> : t('FeedANON.post')}
             </Button>
           </Stack>
         </CardContent>
@@ -166,7 +168,7 @@ function Feed() {
         <CardContent>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
             <TextField
-              placeholder="Search posts..."
+              placeholder={t('FeedANON.search')}
               value={searchDisplay}
               onChange={handleSearchChange}
               size="small"
@@ -174,9 +176,13 @@ function Feed() {
             />
 
             <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Category</InputLabel>
-              <Select value={selectedCategory} onChange={handleCategoryChange} label="Category">
-                <MenuItem value="">All Categories</MenuItem>
+              <InputLabel>{t('FeedANON.category')}</InputLabel>
+              <Select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                label={t('FeedANON.category')}
+              >
+                <MenuItem value="">{t('FeedANON.allCategories')}</MenuItem>
                 {categories &&
                   categories.map((category) => (
                     <MenuItem key={category.id} value={category.id}>
@@ -187,10 +193,10 @@ function Feed() {
             </FormControl>
 
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Sort</InputLabel>
-              <Select value={sort} onChange={handleSortChange} label="Sort">
-                <MenuItem value="desc">Newest First</MenuItem>
-                <MenuItem value="asc">Oldest First</MenuItem>
+              <InputLabel>{t('FeedANON.sort')}</InputLabel>
+              <Select value={sort} onChange={handleSortChange} label={t('FeedANON.sort')}>
+                <MenuItem value="desc">{t('PostANON.newest')}</MenuItem>
+                <MenuItem value="asc">{t('PostANON.oldest')}</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -199,11 +205,11 @@ function Feed() {
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {postsLoading ? (
-          <div>Loading posts...</div>
+          <div>{t('PostANON.loadingPosts')}</div>
         ) : posts && posts.length > 0 ? (
           posts.map((post) => <Post key={post.id} post={post} />)
         ) : (
-          <div>No posts found.</div>
+          <div>{t('PostANON.noPostsFound')}</div>
         )}
 
         {meta && meta.total > meta.per_page && (

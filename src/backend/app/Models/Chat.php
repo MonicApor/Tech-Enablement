@@ -14,8 +14,8 @@ class Chat extends Model
 
     protected $fillable = [
         'post_id',
-        'hr_user_id',
-        'employee_user_id',
+        'hr_employee_id',
+        'employee_employee_id',
         'status',
         'last_message_id',
         'last_message_at',
@@ -34,12 +34,12 @@ class Chat extends Model
 
     public function employeeUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'employee_user_id');
+        return $this->belongsTo(Employee::class, 'employee_employee_id');
     }
 
     public function hrUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'hr_user_id');
+        return $this->belongsTo(Employee::class, 'hr_employee_id');
     }
 
     public function messages(): HasMany
@@ -52,30 +52,30 @@ class Chat extends Model
         return $this->belongsTo(ChatMessage::class, 'last_message_id');
     }
 
-    public function getUnreadMessagesCount(int $userId): int
+    public function getUnreadMessagesCount(int $employeeId): int
     {
         return $this->messages()
-            ->where('sender_id', '!=', $userId)
+            ->where('sender_id', '!=', $employeeId)
             ->whereNull('read_at')
             ->count();
     }
 
-    public function markAsRead(int $userId): void
+    public function markAsRead(int $employeeId): void
     {
         $this->messages()
-            ->where('sender_id', '!=', $userId)
+            ->where('sender_id', '!=', $employeeId)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
     }
 
-    public function isParticipant(int $userId): bool
+    public function isParticipant(int $employeeId): bool
     {
-        return $this->employee_user_id == $userId || $this->hr_user_id == $userId;
+        return $this->employee_employee_id == $employeeId || $this->hr_employee_id == $employeeId;
     }
 
-    public function getOtherParticipant(int $userId): ?User
+    public function getOtherParticipant(int $employeeId): ?Employee
     {
-        return $this->employee_user_id == $userId ? $this->hrUser : $this->employeeUser;
+        return $this->employee_employee_id == $employeeId ? $this->hrUser : $this->employeeUser;
     }
 
     public function scopeActive($query)
@@ -83,11 +83,11 @@ class Chat extends Model
         return $query->where('status', 'active');
     }
 
-    public function scopeForUser($query, int $userId)
+    public function scopeForUser($query, int $employeeId)
     {
-        return $query->where(function ($query) use ($userId) {
-            $query->where('hr_user_id', $userId)
-                  ->orWhere('employee_user_id', $userId);
+        return $query->where(function ($query) use ($employeeId) {
+            $query->where('hr_employee_id', $employeeId)
+                  ->orWhere('employee_employee_id', $employeeId);
         });
     }
 

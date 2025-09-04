@@ -2,17 +2,18 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from 'services/categories.service';
 import ChatService from 'services/chat.service';
 import {
-  useComments,
-  useCreateComment,
-  useDeleteComment,
-  useUpdateComment,
+  // useComments,
+  createComment,
+  deleteComment,
+  updateComment,
 } from 'services/comment.service';
-import { updatePost, useDeletePost, useFlagPost, useUpvotePost } from 'services/post.service';
+import { updatePost, useDeletePost, useUpvotePost } from 'services/post.service';
 import { postSchema } from 'validations/post';
 import {
   Chat as ChatIcon,
@@ -45,6 +46,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -54,8 +56,10 @@ import PostAttachments, { getFileIcon } from '../atoms/PostAttachments';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 
 const Post = ({ post }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser = useSelector((state) => state.profile.user);
+  console.log(currentUser);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
@@ -72,7 +76,7 @@ const Post = ({ post }) => {
   const [attachmentsToRemove, setAttachmentsToRemove] = useState([]);
   const { categories } = useCategories();
 
-  const { comments, isLoading: isLoadingComments } = useComments(post.id);
+  // const { comments, isLoading: isLoadingComments } = useComments(post.id);
 
   const editForm = useForm({
     mode: 'onChange',
@@ -115,7 +119,7 @@ const Post = ({ post }) => {
   const handleSubmitComment = async () => {
     if (commentText.trim()) {
       try {
-        await useCreateComment(commentText, post.id, null);
+        await createComment(commentText, post.id, null);
         setCommentText('');
       } catch (error) {
         console.error('Error creating comment:', error);
@@ -127,7 +131,7 @@ const Post = ({ post }) => {
     const replyText = replyTexts[commentId];
     if (replyText && replyText.trim()) {
       try {
-        await useCreateComment(replyText, post.id, commentId);
+        await createComment(replyText, post.id, commentId);
         setReplyTexts((prev) => ({
           ...prev,
           [commentId]: '',
@@ -139,13 +143,13 @@ const Post = ({ post }) => {
     }
   };
 
-  const handleReport = async () => {
-    try {
-      await useFlagPost(post.id);
-    } catch (error) {
-      console.error('Error flagging post:', error);
-    }
-  };
+  // const handleReport = async () => {
+  //   try {
+  //     await useFlagPost(post.id);
+  //   } catch (error) {
+  //     console.error('Error flagging post:', error);
+  //   }
+  // };
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -215,11 +219,11 @@ const Post = ({ post }) => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    await useDeleteComment(commentId, post.id);
+    await deleteComment(commentId);
   };
 
   const handleDeleteReply = async (replyId) => {
-    await useDeleteComment(replyId, post.id);
+    await deleteComment(replyId);
   };
 
   const handleEditComment = (commentId, currentText) => {
@@ -242,7 +246,7 @@ const Post = ({ post }) => {
     const editText = editTexts[itemId];
     if (editText && editText.trim()) {
       try {
-        await useUpdateComment(itemId, { body: editText }, post.id);
+        await updateComment(itemId, { body: editText });
         if (isReply) {
           setEditingReply(null);
         } else {
@@ -282,18 +286,18 @@ const Post = ({ post }) => {
         <CardHeader
           avatar={
             <Avatar sx={{ bgcolor: 'primary.main' }} aria-label="author">
-              {post.user.avatar}
+              {post.employee.user.avatar}
             </Avatar>
           }
           action={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" sx={{ marginLeft: 2 }}>
                 {post.created_at_human}
               </Typography>
-              <IconButton aria-label="report" onClick={handleReport}>
+              <IconButton aria-label="report">
                 <Flag fontSize="small" color={post.is_flagged ? 'error' : 'default'} />
               </IconButton>
-              {currentUser && currentUser.username === post.user.username && (
+              {currentUser && currentUser.username === post.employee.user.username && (
                 <IconButton aria-label="more options" onClick={handleMenuOpen}>
                   <MoreVert />
                 </IconButton>
@@ -312,10 +316,10 @@ const Post = ({ post }) => {
                 }}
               >
                 <MenuItem onClick={handleEdit} disabled={isEditing}>
-                  Edit
+                  {t('PostANON.edit')}
                 </MenuItem>
                 <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
-                  Delete
+                  {t('PostANON.delete')}
                 </MenuItem>
               </Menu>
             </Box>
@@ -325,21 +329,31 @@ const Post = ({ post }) => {
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
             >
               <Typography variant="h6" fontWeight={600}>
-                {isEditing ? 'Editing Post' : post.title}
+                {isEditing ? t('PostANON.editingPost') : post.title}
               </Typography>
-              <Chip
-                label={post.category.name}
-                size="small"
-                color="primary"
-                variant="outlined"
-                component="span"
-              />
+              <Stack direction="row" spacing={1}>
+                {post.is_resolved && (
+                  <Chip
+                    label={t('PostANON.postResolved')}
+                    color="success"
+                    size="small"
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                )}
+                <Chip
+                  label={post.category.name}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  component="span"
+                />
+              </Stack>
             </Box>
           }
           subheader={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                by {post.user.username} • {post.created_at_human}
+                by {post.employee.user.username} • {post.created_at_human}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Visibility fontSize="small" color="action" />
@@ -356,7 +370,7 @@ const Post = ({ post }) => {
             <Box sx={{ mb: 2 }}>
               <TextField
                 fullWidth
-                label="Title"
+                label={t('PostANON.titlePost')}
                 {...registerEdit('title')}
                 variant="outlined"
                 size="small"
@@ -366,7 +380,7 @@ const Post = ({ post }) => {
               />
               <TextField
                 fullWidth
-                label="Content"
+                label={t('PostANON.content')}
                 {...registerEdit('body')}
                 variant="outlined"
                 multiline
@@ -378,7 +392,7 @@ const Post = ({ post }) => {
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Category:
+                  {t('PostANON.category')}:
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {categories &&
@@ -408,7 +422,7 @@ const Post = ({ post }) => {
               {post.attachments && post.attachments.length > 0 && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    Current Attachments:
+                    {t('PostANON.currentAttachments')}:
                   </Typography>
                   <List dense>
                     {post.attachments.map((attachment) => {
@@ -463,7 +477,7 @@ const Post = ({ post }) => {
                               onClick={() => handleCancelRemoveAttachment(attachment.id)}
                               color="success"
                               size="small"
-                              title="Cancel Remove"
+                              title={t('PostANON.cancelRemove')}
                             >
                               <Undo />
                             </IconButton>
@@ -474,7 +488,7 @@ const Post = ({ post }) => {
                               onClick={() => handleRemoveAttachment(attachment.id)}
                               color="error"
                               size="small"
-                              title="Remove Attachment"
+                              title={t('PostANON.removeAttachment')}
                             >
                               <Delete />
                             </IconButton>
@@ -488,7 +502,7 @@ const Post = ({ post }) => {
 
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Add New Files:
+                  {t('PostANON.addNewFiles')}:
                 </Typography>
                 <FileUpload
                   onFileChange={handleNewFileChange}
@@ -499,14 +513,14 @@ const Post = ({ post }) => {
 
               <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                 <Button variant="outlined" onClick={handleCancelEdit} disabled={isUpdating}>
-                  Cancel
+                  {t('PostANON.cancel')}
                 </Button>
                 <Button
                   variant="contained"
                   onClick={handleEditSubmit(handleSavePostEdit)}
                   disabled={isUpdating}
                 >
-                  {isUpdating ? 'Saving...' : 'Save'}
+                  {isUpdating ? t('PostANON.saving') : t('PostANON.save')}
                 </Button>
               </Box>
             </Box>
@@ -522,7 +536,7 @@ const Post = ({ post }) => {
 
         <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Tooltip title="Upvote">
+            <Tooltip title={t('PostANON.upvote')}>
               <IconButton onClick={handleUpvote} color={post.is_upvoted ? 'primary' : 'default'}>
                 <ThumbUp fontSize="small" />
               </IconButton>
@@ -533,36 +547,47 @@ const Post = ({ post }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Button startIcon={<Comment />} onClick={handleComment} size="small" variant="text">
-              {post.comments_count} Comments
+            <Button
+              startIcon={<Comment />}
+              onClick={handleComment}
+              size="small"
+              variant="text"
+              disabled={post.is_resolved}
+            >
+              {post.comments.length} {t('PostANON.comments')}
             </Button>
 
-            {currentUser && currentUser.role === 'hr' && (
-              <Button
-                variant="outline"
-                size="small"
-                startIcon={<ChatIcon />}
-                onClick={async () => {
-                  try {
-                    const employeeUserId = post.user.id;
-                    const existingChat = await ChatService.getChatByPostAndEmployee(
-                      post.id,
-                      employeeUserId
-                    );
-                    navigate(`/employee/chats?chatId=${existingChat.data.id}`);
-                  } catch (error) {
-                    if (error.response?.status === 404) {
-                      const newChat = await ChatService.createChat(post.id, post.user.id);
-                      navigate(`/employee/chats?chatId=${newChat.data.id}`);
-                    } else {
-                      console.error('Error handling chat:', error);
+            {currentUser &&
+              currentUser.role_id === 2 &&
+              currentUser.id !== post.employee.user.id && (
+                <Button
+                  variant="outline"
+                  size="small"
+                  startIcon={<ChatIcon />}
+                  onClick={async () => {
+                    try {
+                      const employeeUserId = post.employee.user.id;
+                      const existingChat = await ChatService.getChatByPostAndEmployee(
+                        post.id,
+                        employeeUserId
+                      );
+                      navigate(`/employee/chats?chatId=${existingChat.data.id}`);
+                    } catch (error) {
+                      if (error.response?.status === 404) {
+                        const newChat = await ChatService.createChat(
+                          post.id,
+                          post.employee.user.id
+                        );
+                        navigate(`/employee/chats?chatId=${newChat.data.id}`);
+                      } else {
+                        console.error('Error handling chat:', error);
+                      }
                     }
-                  }
-                }}
-              >
-                Chat
-              </Button>
-            )}
+                  }}
+                >
+                  {t('PostANON.chat')}
+                </Button>
+              )}
           </Box>
         </CardActions>
 
@@ -570,100 +595,120 @@ const Post = ({ post }) => {
           <Divider />
           <CardContent sx={{ pt: 2 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
-              Comments ({post.comments_count})
+              {t('PostANON.comments')} ({post.comments_count})
             </Typography>
 
-            <Box sx={{ mb: 3 }}>
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                variant="outlined"
-                size="small"
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                <Button
-                  variant="contained"
+            {!post.is_resolved && (
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  placeholder={t('PostANON.addComment')}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  variant="outlined"
                   size="small"
-                  onClick={handleSubmitComment}
-                  disabled={!commentText.trim()}
-                >
-                  Post Comment
-                </Button>
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleSubmitComment}
+                    disabled={!commentText.trim()}
+                  >
+                    {t('PostANON.postComment')}
+                  </Button>
+                </Box>
               </Box>
-            </Box>
+            )}
+
+            {post.is_resolved && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary" align="center">
+                  {t('PostANON.commentsDisabled')}
+                </Typography>
+              </Box>
+            )}
 
             <List sx={{ p: 0 }}>
-              {isLoadingComments ? (
-                <Typography>Loading comments...</Typography>
+              {/* {isLoadingComments ? (
+                <Typography>{t('PostANON.loadingComments')}</Typography>
               ) : comments && comments.length > 0 ? (
-                comments.map((comment) => (
-                  <React.Fragment key={comment.id}>
-                    <ListItem sx={{ px: 0, py: 1 }}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
-                          {comment.user?.username?.charAt(0) || 'U'}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box>
-                            {editingComment === comment.id ? (
-                              <Box sx={{ mb: 1 }}>
-                                <TextField
-                                  fullWidth
-                                  multiline
-                                  rows={2}
-                                  value={editTexts[comment.id] || ''}
-                                  onChange={(e) =>
-                                    setEditTexts((prev) => ({
-                                      ...prev,
-                                      [comment.id]: e.target.value,
-                                    }))
-                                  }
-                                  variant="outlined"
-                                  size="small"
-                                  sx={{ mb: 1 }}
-                                />
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                  <Button size="small" onClick={() => setEditingComment(null)}>
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => handleSaveCommentEdit(comment.id)}
-                                    disabled={!editTexts[comment.id]?.trim()}
-                                  >
-                                    Save
-                                  </Button>
-                                </Box>
-                              </Box>
-                            ) : (
-                              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                {comment.body}
-                              </Typography>
-                            )}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Typography variant="caption" color="text.secondary">
-                                by {comment.user?.username} • {comment.created_at_human}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <IconButton size="small">
-                                  <ThumbUp fontSize="small" />
-                                </IconButton>
-                                <Typography variant="caption">{comment.upvotes_count}</Typography>
-                                <Button
-                                  size="small"
-                                  startIcon={<Reply />}
-                                  onClick={() => handleReply(comment.id)}
-                                >
-                                  {replyTo === comment.id ? 'Cancel Reply' : 'Reply'}
+                comments.map((comment) => ( */}
+              {post.comments.map((comment) => (
+                <React.Fragment key={comment.id}>
+                  <ListItem sx={{ px: 0, py: 1 }}>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
+                        {comment.employee?.user?.username?.charAt(0) || 'U'}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Box>
+                          {editingComment === comment.id ? (
+                            <Box sx={{ mb: 1 }}>
+                              <TextField
+                                fullWidth
+                                multiline
+                                rows={2}
+                                value={editTexts[comment.id] || ''}
+                                onChange={(e) =>
+                                  setEditTexts((prev) => ({
+                                    ...prev,
+                                    [comment.id]: e.target.value,
+                                  }))
+                                }
+                                variant="outlined"
+                                size="small"
+                                sx={{ mb: 1 }}
+                              />
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                <Button size="small" onClick={() => setEditingComment(null)}>
+                                  {t('PostANON.cancel')}
                                 </Button>
-                                {currentUser && currentUser.username === comment.user?.username && (
+                                <Button
+                                  variant="contained"
+                                  size="small"
+                                  onClick={() => handleSaveCommentEdit(comment.id)}
+                                  disabled={!editTexts[comment.id]?.trim()}
+                                >
+                                  {t('PostANON.save')}
+                                </Button>
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Typography variant="body2" sx={{ mb: 0.5 }}>
+                              {comment.body}
+                            </Typography>
+                          )}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                            }}
+                          >
+                            <Typography variant="caption" color="text.secondary">
+                              by {comment.employee?.user?.username} • {comment.created_at_human}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <IconButton size="small">
+                                <ThumbUp fontSize="small" />
+                              </IconButton>
+                              <Typography variant="caption">{comment.upvotes_count}</Typography>
+                              <Button
+                                size="small"
+                                startIcon={<Reply />}
+                                onClick={() => handleReply(comment.id)}
+                              >
+                                {replyTo === comment.id
+                                  ? t('PostANON.cancelReply')
+                                  : t('PostANON.reply')}
+                              </Button>
+                              {currentUser &&
+                                currentUser.username === comment.employee?.user?.username && (
                                   <>
                                     <IconButton
                                       size="small"
@@ -681,141 +726,139 @@ const Post = ({ post }) => {
                                     </IconButton>
                                   </>
                                 )}
-                              </Box>
                             </Box>
                           </Box>
-                        }
-                      />
-                    </ListItem>
-
-                    {replyTo === comment.id && (
-                      <Box sx={{ ml: 4, mb: 2 }}>
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={2}
-                          placeholder="Write your reply..."
-                          value={replyTexts[comment.id] || ''}
-                          onChange={(e) =>
-                            setReplyTexts((prev) => ({
-                              ...prev,
-                              [comment.id]: e.target.value,
-                            }))
-                          }
-                          variant="outlined"
-                          size="small"
-                          sx={{ mb: 1 }}
-                        />
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                          <Button size="small" onClick={() => handleReply(comment.id)}>
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleSubmitReply(comment.id)}
-                            disabled={!replyTexts[comment.id]?.trim()}
-                          >
-                            Post Reply
-                          </Button>
                         </Box>
-                      </Box>
-                    )}
+                      }
+                    />
+                  </ListItem>
 
-                    {comment.replies &&
-                      comment.replies.length > 0 &&
-                      comment.replies.map((reply) => (
-                        <ListItem key={reply.id} sx={{ px: 0, py: 1, pl: 4 }}>
-                          <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: 'grey.500', width: 28, height: 28 }}>
-                              {reply.user?.username?.charAt(0) || 'U'}
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <Box>
-                                {editingReply === reply.id ? (
-                                  <Box sx={{ mb: 1 }}>
-                                    <TextField
-                                      fullWidth
-                                      multiline
-                                      rows={2}
-                                      value={editTexts[reply.id] || ''}
-                                      onChange={(e) =>
-                                        setEditTexts((prev) => ({
-                                          ...prev,
-                                          [reply.id]: e.target.value,
-                                        }))
-                                      }
-                                      variant="outlined"
+                  {replyTo === comment.id && (
+                    <Box sx={{ ml: 4, mb: 2 }}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        placeholder={t('PostANON.writeReply')}
+                        value={replyTexts[comment.id] || ''}
+                        onChange={(e) =>
+                          setReplyTexts((prev) => ({
+                            ...prev,
+                            [comment.id]: e.target.value,
+                          }))
+                        }
+                        variant="outlined"
+                        size="small"
+                        sx={{ mb: 1 }}
+                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Button size="small" onClick={() => handleReply(comment.id)}>
+                          {t('PostANON.cancel')}
+                        </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleSubmitReply(comment.id)}
+                          disabled={!replyTexts[comment.id]?.trim()}
+                        >
+                          {t('PostANON.postReply')}
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {comment.replies &&
+                    comment.replies.length > 0 &&
+                    comment.replies.map((reply) => (
+                      <ListItem key={reply.id} sx={{ px: 0, py: 1, pl: 4 }}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: 'grey.500', width: 28, height: 28 }}>
+                            {reply.employee?.user?.username?.charAt(0) || 'U'}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Box>
+                              {editingReply === reply.id ? (
+                                <Box sx={{ mb: 1 }}>
+                                  <TextField
+                                    fullWidth
+                                    multiline
+                                    rows={2}
+                                    value={editTexts[reply.id] || ''}
+                                    onChange={(e) =>
+                                      setEditTexts((prev) => ({
+                                        ...prev,
+                                        [reply.id]: e.target.value,
+                                      }))
+                                    }
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                    <Button size="small" onClick={() => setEditingReply(null)}>
+                                      {t('PostANON.cancel')}
+                                    </Button>
+                                    <Button
+                                      variant="contained"
                                       size="small"
-                                      sx={{ mb: 1 }}
-                                    />
-                                    <Box
-                                      sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}
+                                      onClick={() => handleSaveCommentEdit(reply.id, true)}
+                                      disabled={!editTexts[reply.id]?.trim()}
                                     >
-                                      <Button size="small" onClick={() => setEditingReply(null)}>
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        variant="contained"
-                                        size="small"
-                                        onClick={() => handleSaveCommentEdit(reply.id, true)}
-                                        disabled={!editTexts[reply.id]?.trim()}
-                                      >
-                                        Save
-                                      </Button>
-                                    </Box>
-                                  </Box>
-                                ) : (
-                                  <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                    {reply.body}
-                                  </Typography>
-                                )}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                  <Typography variant="caption" color="text.secondary">
-                                    by {reply.user?.username} • {reply.created_at_human}
-                                  </Typography>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <IconButton size="small">
-                                      <ThumbUp fontSize="small" />
-                                    </IconButton>
-                                    <Typography variant="caption">{reply.upvotes_count}</Typography>
-                                    {currentUser &&
-                                      currentUser.username === reply.user?.username && (
-                                        <>
-                                          <IconButton
-                                            size="small"
-                                            color="primary"
-                                            onClick={() => handleEditReply(reply.id, reply.body)}
-                                          >
-                                            <Edit fontSize="small" />
-                                          </IconButton>
-                                          <IconButton
-                                            size="small"
-                                            color="error"
-                                            onClick={() => handleDeleteReply(reply.id)}
-                                          >
-                                            <Delete fontSize="small" />
-                                          </IconButton>
-                                        </>
-                                      )}
+                                      {t('PostANON.save')}
+                                    </Button>
                                   </Box>
                                 </Box>
+                              ) : (
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  {reply.body}
+                                </Typography>
+                              )}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  by {reply.employee?.user?.username} • {reply.created_at_human}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <IconButton size="small">
+                                    <ThumbUp fontSize="small" />
+                                  </IconButton>
+                                  <Typography variant="caption">{reply.upvotes_count}</Typography>
+                                  {currentUser &&
+                                    currentUser.username === reply.employee?.user?.username && (
+                                      <>
+                                        <IconButton
+                                          size="small"
+                                          color="primary"
+                                          onClick={() => handleEditReply(reply.id, reply.body)}
+                                        >
+                                          <Edit fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                          size="small"
+                                          color="error"
+                                          onClick={() => handleDeleteReply(reply.id)}
+                                        >
+                                          <Delete fontSize="small" />
+                                        </IconButton>
+                                      </>
+                                    )}
+                                </Box>
                               </Box>
-                            }
-                          />
-                        </ListItem>
-                      ))}
+                            </Box>
+                          }
+                        />
+                      </ListItem>
+                    ))}
 
-                    <Divider />
-                  </React.Fragment>
-                ))
-              ) : (
-                <Typography color="text.secondary">
-                  No comments yet. Be the first to comment!
-                </Typography>
+                  <Divider />
+                </React.Fragment>
+              ))}
+              {/* ) : ( */}
+              {post.comments.length === 0 && (
+                <Typography color="text.secondary">{t('PostANON.noComments')}</Typography>
               )}
+              {/* )} */}
             </List>
           </CardContent>
         </Collapse>
@@ -825,8 +868,8 @@ const Post = ({ post }) => {
         open={deleteDialogOpen}
         onClose={handleDeleteDialogClose}
         onConfirm={handleDeleteConfirm}
-        title="Delete Post"
-        message={`Are you sure you want to delete <strong>${post.title}</strong> post? This action cannot be undone.`}
+        title={t('PostANON.deletePost')}
+        message={t('PostANON.messageDeletePost', { title: post.title })}
         loading={isDeleting}
       />
     </>

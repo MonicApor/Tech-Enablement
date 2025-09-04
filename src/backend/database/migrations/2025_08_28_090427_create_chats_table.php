@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('post_id');
-            $table->unsignedBigInteger('hr_user_id');
-            $table->unsignedBigInteger('employee_user_id');
+            $table->unsignedBigInteger('hr_employee_id');
+            $table->unsignedBigInteger('employee_employee_id');
             $table->enum('status', ['active', 'closed','archived'])->default('active');
             $table->unsignedBigInteger('last_message_id')->nullable();
             $table->timestamp('last_message_at')->nullable();
@@ -23,10 +23,12 @@ return new class extends Migration
             
 
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
-            $table->foreign('hr_user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('employee_user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('hr_employee_id')->references('id')->on('employees')->onDelete('cascade');
+            $table->foreign('employee_employee_id')->references('id')->on('employees')->onDelete('cascade');
 
-            $table->unique(['post_id', 'employee_user_id']);
+            $table->unique(['post_id', 'employee_employee_id']);
+
+            $table->softDeletes();
         });
     }
 

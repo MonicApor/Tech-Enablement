@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -29,14 +29,10 @@ class User extends Authenticatable
         'email_verified_at',
         'microsoft_tenant_id',
         'user_type',
-        'role',
-        'position',
-        'immediate_supervisor',
-        'hire_date',
+        'role_id',
         'password',
         'password_confirmation',
         'login_attempts',
-        'user_status_id',
     ];
 
     /**
@@ -57,7 +53,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'hire_date' => 'date',
     ];
 
     /**
@@ -87,13 +82,7 @@ class User extends Authenticatable
         return $username;
     }
 
-    /**
-     * Get the user status that owns the user.
-     */
-    public function userStatus()
-    {
-        return $this->belongsTo(UserStatus::class, 'user_status_id');
-    }
+
 
     /**
      * Get the activation tokens for the user.
@@ -112,12 +101,88 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the employee record for this user.
+     */
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * Get the role for this user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Roles::class, 'role_id');
+    }
+
+    /**
+     * Check if user is an employee
+     */
+    public function isEmployee(): bool
+    {
+        return $this->employee()->exists();
+    }
+
+    /**
+     * Check if user is HR (based on role)
+     */
+    public function isHr(): bool
+    {
+        return $this->role && $this->role->name === 'HR';
+    }
+
+    /**
+     * Check if user is Admin (based on role)
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'Admin';
+    }
+
+    /**
+     * Check if user is Operation (based on role)
+     */
+    public function isOperation(): bool
+    {
+        return $this->role && $this->role->name === 'Operation';
+    }
+
+    /**
+     * Get user's role name (from roles table)
+     */
+    public function getRoleNameAttribute()
+    {
+        return $this->role ? $this->role->name : null;
+    }
+
+    /**
+     * Get user's position (from employee table)
+     */
+    public function getPositionAttribute()
+    {
+        return $this->isEmployee() ? $this->employee->position : null;
+    }
+
+    /**
+     * Get user's hire date (from employee table)
+     */
+    public function getHireDateAttribute()
+    {
+        return $this->isEmployee() ? $this->employee->hire_date : null;
+    }
+
+    /** 
      * Get the chats where this user is a participant.
      */
     public function chats()
     {
-        return Chat::where('employee_user_id', $this->id)
-                    ->orWhere('hr_user_id', $this->id);
+        if (!$this->isEmployee()) {
+            return Chat::whereRaw('1 = 0'); // Return empty query if no employee record
+        }
+        
+        return Chat::where('employee_employee_id', $this->employee->id)
+                    ->orWhere('hr_employee_id', $this->employee->id);
     }
 
     /**

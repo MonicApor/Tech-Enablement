@@ -37,7 +37,7 @@ class ChatMessageController extends Controller
         $this->authorize('readMessages', $chat);
 
         $user = auth()->user();
-        $chat->markAsRead($user->id);
+        $chat->markAsRead($user->employee->id);
 
         $messages = $chat->messages()->with('sender')->orderBy('created_at', 'asc')->get();
 
@@ -74,7 +74,7 @@ class ChatMessageController extends Controller
         $user = auth()->user();
 
         $message = $chat->messages()->create([
-            'sender_id' => $user->id,
+            'sender_id' => $user->employee->id,
             'content' => $request->content,
             'message_type' => $request->message_type ?? 'text',
         ]);
@@ -144,7 +144,7 @@ class ChatMessageController extends Controller
 
         $user = auth()->user();
 
-        if ($message->sender_id !== $user->id) {
+        if ($message->sender_id !== $user->employee->id) {
             return response()->json([
                 'message' => 'You are not authorized to update this message',
             ], 403);
@@ -188,7 +188,7 @@ class ChatMessageController extends Controller
 
         $user = auth()->user();
 
-        if ($message->sender_id !== $user->id) {
+        if ($message->sender_id !== $user->employee->id) {
             return response()->json([
                 'message' => 'You are not authorized to delete this message',
             ], 403);

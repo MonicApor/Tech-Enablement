@@ -15,7 +15,8 @@ class CommentPolicy
      */
     public function create(User $user): bool
     {
-        return true; // Any authenticated user can create comments
+        // User must have an associated employee record to create comments
+        return $user->isEmployee();
     }
 
     /**
@@ -23,8 +24,8 @@ class CommentPolicy
      */
     public function update(User $user, Comment $comment): bool
     {
-        // Users can update their own comments
-        return $user->id === $comment->user_id;
+        // Users can update their own comments (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $comment->employee_id;
     }
 
     /**
@@ -32,7 +33,7 @@ class CommentPolicy
      */
     public function delete(User $user, Comment $comment): bool
     {
-        // Users can delete their own comments
-        return $user->id === $comment->user_id;
+        // Users can delete their own comments (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $comment->employee_id;
     }
 }

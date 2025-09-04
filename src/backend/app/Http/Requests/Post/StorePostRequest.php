@@ -29,7 +29,7 @@ class StorePostRequest extends FormRequest
                 'max:255',
                 'min:2',
                 Rule::unique('posts')->where(function ($query) {
-                    return $query->where('user_id', auth()->user()->id);
+                    return $query->where('employee_id', auth()->user()->employee->id);
                 }),
             ],
             'body' => [
@@ -73,7 +73,7 @@ class StorePostRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'user_id' => auth()->user()->id,
+            'employee_id' => auth()->user()->employee->id,
         ]);
     }
 }

@@ -87,21 +87,6 @@ services:
       - ./docker/mysql/scripts:/docker-entrypoint-initdb.d
       - database:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: ${PROJECT_NAME}_phpmyadmin
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: root
-      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    links:
-      - mysql:mysql
-    depends_on:
-      - mysql
-
   cron:
     build:
       context: .

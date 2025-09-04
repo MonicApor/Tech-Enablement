@@ -4,7 +4,7 @@ namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Laravel\Passport\Passport;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -18,14 +18,12 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\Comment::class => \App\Policies\CommentPolicy::class,
         \App\Models\Chat::class => \App\Policies\ChatPolicy::class,
     ];
-
+    
     /**
      * Register any authentication / authorization services.
      */
     public function boot(): void
     {
-        Passport::tokensExpireIn(now()->addDays(30));
-        Passport::refreshTokensExpireIn(now()->addDays(60));
-        Passport::personalAccessTokensExpireIn(now()->addDays(30));
+        // Sanctum handles token expiration automaticallye
     }
 }

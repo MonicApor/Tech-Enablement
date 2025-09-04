@@ -13,7 +13,7 @@ class PostAttachment extends Model
 
     protected $fillable = [
         'post_id',
-        'user_id',
+        'employee_id',
         'original_name',
         'file_name',
         'file_path',
@@ -36,11 +36,13 @@ class PostAttachment extends Model
         return $this->belongsTo(Post::class);
     }
 
-    //define user relation
-    public function user(): BelongsTo
+    //define employee relation
+    public function employee(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
+
+
 
     //get human readable file size ex: 1.5mb
     public function getHumanFileSizeAttribute() : string

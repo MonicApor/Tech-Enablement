@@ -40,7 +40,7 @@ function Login() {
   useEffect(() => {
     if (user) {
       const { role } = user;
-      const redirect = role === 'System Admin' ? '/admin' : '/employee';
+      const redirect = role.id === 1 ? '/admin' : '/employee';
       navigate(redirect);
     }
   }, [user, navigate]);
@@ -54,8 +54,8 @@ function Login() {
         const { role } = user;
         let redirect = '';
 
-        switch (role) {
-          case 'System Admin':
+        switch (role.id) {
+          case 1:
             redirect = '/admin';
             break;
           default:
@@ -76,11 +76,11 @@ function Login() {
       const user = await loginWithMicrosoft();
       dispatch(setProfile(user));
 
-      const { role } = user;
+      const { role_id } = user;
       let redirect = '';
 
-      switch (role) {
-        case 'System Admin':
+      switch (role_id) {
+        case 1:
           redirect = '/admin';
           break;
         default:

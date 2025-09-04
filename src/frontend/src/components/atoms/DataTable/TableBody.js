@@ -14,6 +14,7 @@ function TableBody(props) {
     handleDelete = (id) => alert(`Delete id # ${id}`),
     handleEdit = (id) => alert(`Edit id # ${id}`),
     actions = true,
+    customRenderers = {},
   } = props;
   const { t } = useTranslation();
 
@@ -32,9 +33,13 @@ function TableBody(props) {
                 return label;
               };
 
+              // Check if there's a custom renderer for this cell
+              const customRenderer = customRenderers[cell.id];
+              const cellContent = customRenderer ? customRenderer(row) : getLabel(cell);
+
               return (
                 <TableCell key={index} align={cell.numeric ? 'right' : 'left'}>
-                  {getLabel(cell)}
+                  {cellContent}
                 </TableCell>
               );
             })}
@@ -70,6 +75,7 @@ TableBody.propTypes = {
   handleDelete: PropTypes.func,
   handleEdit: PropTypes.func,
   actions: PropTypes.bool,
+  customRenderers: PropTypes.object,
 };
 
 export default TableBody;

@@ -35,7 +35,13 @@ class CommentController extends Controller
      */
     public function index(Post $post): JsonResponse
     {
-        $comments = $post->topLevelComments()->with(['user', 'replies.user'])->orderBy('created_at', 'desc')->get();
+        $comments = $post->topLevelComments()->with([
+            'employee.user', 
+            'replies' => function($query) {
+                $query->with('employee.user');
+            }
+        ])->orderBy('created_at', 'asc')->get();
+        
         return response()->json([
             'data' => CommentResource::collection($comments)
         ]);
@@ -62,12 +68,12 @@ class CommentController extends Controller
         $this->authorize('create', Comment::class);
         
         $data = $request->validated();
-        $data['user_id'] = auth()->user()->id;
+        $data['employee_id'] = auth()->user()->employee->id;
         
         $comment = Comment::create($data);
         return response()->json([
             'message' => 'Comment created successfully',
-            'data' => new CommentResource($comment->load('user')),
+            'data' => new CommentResource($comment->load('employee.user')),
         ], 201);
     }
 
@@ -88,7 +94,7 @@ class CommentController extends Controller
     public function show(Comment $comment): JsonResponse
     {
         return response()->json([
-            'data' => new CommentResource($comment->load('user')),
+            'data' => new CommentResource($comment->load('employee.user')),
         ]);
     }
 
@@ -116,7 +122,7 @@ class CommentController extends Controller
         $comment->update($request->validated());
         return response()->json([
             'message' => 'Comment updated successfully',
-            'data' => new CommentResource($comment->load('user')),
+            'data' => new CommentResource($comment->load('employee.user')),
         ]);
     }
 

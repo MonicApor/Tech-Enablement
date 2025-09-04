@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Send } from '@mui/icons-material';
@@ -25,6 +26,7 @@ const Chats = () => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [urlParamsProcessed, setUrlParamsProcessed] = useState(false);
+  const { t } = useTranslation();
 
   const currentUser = useSelector((state) => state.profile.user);
   useWebSocket();
@@ -96,7 +98,7 @@ const Chats = () => {
       }
 
       let employeeUserId;
-      if (currentUser.role === 'hr') {
+      if (currentUser.role_id === 2) {
         if (!postAuthorId) {
           throw new Error('Post author ID is required for HR users');
         }
@@ -177,7 +179,7 @@ const Chats = () => {
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
           >
             <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
-              💬 Conversations
+              💬 {t('ChatsANON.title')}
             </Typography>
             <Button
               variant="contained"
@@ -190,11 +192,11 @@ const Chats = () => {
               }}
               onClick={() => navigate('/employee')}
             >
-              📝 View Posts
+              📝 {t('ChatsANON.viewPosts')}
             </Button>
           </Box>
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-            {chats.length} active chats • Click &quot;Chat&quot; on any post to start a conversation
+            {chats.length} {t('ChatsANON.activeChats')} • {t('ChatsANON.noChats')}
           </Typography>
         </Box>
 
@@ -205,12 +207,12 @@ const Chats = () => {
             </Box>
           ) : chatsError ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Alert severity="error">Failed to load chats</Alert>
+              <Alert severity="error">{t('ChatsANON.failedToLoadChats')}</Alert>
             </Box>
           ) : chats.length === 0 ? (
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                No chats yet. Click &quot;Chat&quot; on any post to start a conversation.
+                {t('ChatsANON.noActiveChats')} {t('ChatsANON.noChats')}
               </Typography>
             </Box>
           ) : (
@@ -248,7 +250,10 @@ const Chats = () => {
               >
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
-                    {chat.other_participant?.name?.charAt(0) || 'U'}
+                    {chat.other_participant?.user.avatar ||
+                      chat.other_participant?.user.name?.charAt(0) ||
+                      chat.other_participant?.user.username?.charAt(0) ||
+                      'U'}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
@@ -261,27 +266,30 @@ const Chats = () => {
                       }}
                     >
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {chat.other_participant?.name || 'Unknown User'}
+                        {chat.other_participant?.user.name || t('ChatsANON.unknownUser')}
                       </Typography>
                     </Box>
                   }
                   secondary={
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 0.5, fontWeight: 500 }}
-                      >
-                        📝 {chat.post?.title || 'Unknown Post'}
-                        <br />
-                        💬 {chat.latest_message?.content || 'No messages yet'}
-                        <br />
-                        💬{' '}
-                        {chat.last_message_at
-                          ? new Date(chat.last_message_at).toLocaleString()
-                          : 'No activity'}
-                      </Typography>
-                    </Box>
+                    <span
+                      style={{
+                        marginBottom: '4px',
+                        fontWeight: 500,
+                        color: 'rgba(0, 0, 0, 0.6)',
+                        fontSize: '0.875rem',
+                        lineHeight: 1.43,
+                        display: 'block',
+                      }}
+                    >
+                      📝 {chat.post?.title || t('ChatsANON.unknownPost')}
+                      <br />
+                      💬 {chat.latest_message?.content || t('ChatsANON.noMessages')}
+                      <br />
+                      💬{' '}
+                      {chat.last_message_at
+                        ? new Date(chat.last_message_at).toLocaleString()
+                        : t('ChatsANON.noActivity')}
+                    </span>
                   }
                 />
               </ListItem>
@@ -315,16 +323,17 @@ const Chats = () => {
                 <Avatar
                   sx={{ bgcolor: 'secondary.main', width: 48, height: 48, fontSize: '1.1rem' }}
                 >
-                  {selectedChat.other_participant?.avatar ||
-                    selectedChat.other_participant?.name?.charAt(0) ||
+                  {selectedChat.other_participant?.user.avatar ||
+                    selectedChat.other_participant?.user.name?.charAt(0) ||
+                    selectedChat.other_participant?.user.username?.charAt(0) ||
                     'U'}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                    👤 {selectedChat.other_participant?.name || 'Unknown User'}
+                    👤 {selectedChat.other_participant?.user.name || t('ChatsANON.unknownUser')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    💬 Chatting about their feedback
+                    💬 {t('ChatsANON.chattingAboutFeedback')}
                   </Typography>
                 </Box>
               </Box>
@@ -341,10 +350,10 @@ const Chats = () => {
                   variant="subtitle2"
                   sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}
                 >
-                  📝 Original Feedback: {selectedChat.post?.title || 'Unknown Post'}
+                  📝 Post: {selectedChat.post?.title || t('ChatsANON.unknownPost')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                  {selectedChat.post?.content || 'No content available'}
+                  {selectedChat.post?.content || t('ChatsANON.noContentAvailable')}
                 </Typography>
               </Box>
             </Box>
@@ -356,17 +365,18 @@ const Chats = () => {
                 </Box>
               ) : messagesError ? (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Alert severity="error">Failed to load messages</Alert>
+                  <Alert severity="error">{t('ChatsANON.failedToLoadMessages')}</Alert>
                 </Box>
               ) : messages.length === 0 ? (
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    No messages yet. Start the conversation!
+                    {t('ChatsANON.noMessages')}
                   </Typography>
                 </Box>
               ) : (
                 messages.map((msg) => {
-                  const isCurrentUserMessage = msg.sender_id === currentUser.id;
+                  const isCurrentUserMessage =
+                    msg.is_from_current_user || msg.sender_id === currentUser.employee?.id;
                   return (
                     <Box
                       key={msg.id}
@@ -386,7 +396,7 @@ const Chats = () => {
                             fontSize: '0.75rem',
                           }}
                         >
-                          {msg.sender_display_name?.charAt(0) || 'U'}
+                          {msg.sender_avatar || msg.sender_name?.charAt(0) || 'U'}
                         </Avatar>
                       )}
                       <Box
@@ -398,7 +408,7 @@ const Chats = () => {
                       >
                         {!isCurrentUserMessage && (
                           <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
-                            {msg.sender_display_name}
+                            {msg.sender_name}
                           </Typography>
                         )}
                         <Box
@@ -433,7 +443,7 @@ const Chats = () => {
                             fontSize: '0.75rem',
                           }}
                         >
-                          {msg.sender_display_name?.charAt(0) || 'H'}
+                          {msg.sender_avatar || msg.sender_name?.charAt(0) || 'U'}
                         </Avatar>
                       )}
                     </Box>
@@ -446,7 +456,7 @@ const Chats = () => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
                   fullWidth
-                  placeholder="Type your message..."
+                  placeholder={t('ChatsANON.placeholder')}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -460,7 +470,7 @@ const Chats = () => {
                   disabled={!message.trim() || sending}
                   startIcon={sending ? <CircularProgress size={20} /> : <Send />}
                 >
-                  {sending ? 'Sending...' : 'Send'}
+                  {sending ? t('ChatsANON.placeholderSending') : t('ChatsANON.placeholderSend')}
                 </Button>
               </Box>
             </Box>
@@ -480,17 +490,17 @@ const Chats = () => {
                 💬
               </Typography>
               <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                Select a conversation
+                {t('ChatsANON.selectConversation')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Choose a conversation from the sidebar to start chatting
+                {t('ChatsANON.chooseConversation')}
               </Typography>
               <Button
                 variant="contained"
                 onClick={() => navigate('/employee')}
                 sx={{ textTransform: 'none' }}
               >
-                📝 Browse Posts
+                📝 {t('ChatsANON.browsePosts')}
               </Button>
             </Box>
           </Box>

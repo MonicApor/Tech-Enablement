@@ -21,7 +21,8 @@ class UpdatePostRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('posts', 'title')->ignore($this->route('post')->id)->where(function ($query) {
-                    return $query->where('user_id', auth()->id());
+                    $user = auth()->user();
+                    return $user->employee ? $query->where('employee_id', $user->employee->id) : $query;
                 }),
             ],
 

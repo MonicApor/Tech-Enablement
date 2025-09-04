@@ -15,7 +15,8 @@ class ChatPolicy
      */
     public function viewAny(User $user): bool
     {
-        return true; // Any authenticated user can view their chats
+        // User must have an associated employee record to view chats
+        return $user->isEmployee();
     }
 
     /**
@@ -23,7 +24,7 @@ class ChatPolicy
      */
     public function view(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -31,7 +32,8 @@ class ChatPolicy
      */
     public function create(User $user): bool
     {
-        return true; // Any authenticated user can create chats
+        // User must have an associated employee record to create chats
+        return $user->isEmployee();
     }
 
     /**
@@ -39,7 +41,7 @@ class ChatPolicy
      */
     public function update(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -47,7 +49,7 @@ class ChatPolicy
      */
     public function delete(User $user, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isActive();
+        return $user->isEmployee() && $chat->hr_employee_id === $user->employee->id && $chat->isActive();
     }
 
     /**
@@ -55,7 +57,7 @@ class ChatPolicy
      */
     public function readMessages(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -63,7 +65,7 @@ class ChatPolicy
      */
     public function sendMessage(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -71,7 +73,7 @@ class ChatPolicy
      */
     public function deleteMessage(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -79,7 +81,7 @@ class ChatPolicy
      */
     public function close(User $user, Chat $chat): bool
     {
-        return $chat->isParticipant($user->id) && $chat->isActive();
+        return $user->isEmployee() && $chat->isParticipant($user->employee->id) && $chat->isActive();
     }
 
     /**
@@ -87,7 +89,7 @@ class ChatPolicy
      */
     public function archive(User $user, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isActive();
+        return $user->isEmployee() && $chat->hr_employee_id === $user->employee->id && $chat->isActive();
     }
 
     /**
@@ -95,7 +97,7 @@ class ChatPolicy
      */
     public function restore(User $user, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id && $chat->isArchived();
+        return $user->isEmployee() && $chat->hr_employee_id === $user->employee->id && $chat->isArchived();
     }
 
     /**
@@ -103,6 +105,6 @@ class ChatPolicy
      */
     public function forceDelete(User $user, Chat $chat): bool
     {
-        return $chat->hr_user_id === $user->id;
+        return $user->isEmployee() && $chat->hr_employee_id === $user->employee->id;
     }
 }

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Archive,
   CloudUpload,
@@ -23,6 +24,7 @@ const FileUpload = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (value !== null && value !== undefined) {
@@ -219,13 +221,13 @@ const FileUpload = ({
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           <CloudUpload sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
           <Typography variant="h6" color="primary" gutterBottom>
-            {isDragOver ? 'Drop files here!' : 'Drag & drop files here'}
+            {isDragOver ? t('PostANON.dropFilesHere') : t('PostANON.dragAndDropFilesHere')}
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            or click to browse files
+            {t('PostANON.orClickToBrowseFiles')}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Supported formats: {accept} • Max file size: 5MB
+            {t('PostANON.supportedFormats')} {accept} • {t('PostANON.maxFileSize')} 5MB
           </Typography>
         </Box>
       </Paper>
@@ -233,7 +235,7 @@ const FileUpload = ({
       {files.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="h6" gutterBottom>
-            Attached Files ({files.length})
+            {t('PostANON.attachedFiles')} ({files.length})
           </Typography>
           <List>
             {files.map((file, index) => (

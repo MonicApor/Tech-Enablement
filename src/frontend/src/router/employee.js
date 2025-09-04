@@ -11,6 +11,11 @@ const employee = [
     auth: true,
   },
   {
+    path: '/employee/flag-post',
+    component: 'pages/authenticated/employee/FlagPost',
+    auth: true,
+  },
+  {
     path: '/employee/post/:id',
     component: 'pages/authenticated/employee/Post',
     auth: true,

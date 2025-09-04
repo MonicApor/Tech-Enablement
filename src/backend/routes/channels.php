@@ -21,7 +21,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 // Chat channels - allow users to listen to chat channels they're part of
 Broadcast::channel('chat.{chatId}', function ($user, $chatId) {
     $chat = Chat::find($chatId);
-    return $chat && $chat->isParticipant($user->id);
+    return $chat && $user->isEmployee() && $chat->isParticipant($user->employee->id);
 });
 
 // User channels for chat updates
