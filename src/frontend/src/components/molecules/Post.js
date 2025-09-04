@@ -59,7 +59,6 @@ const Post = ({ post }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser = useSelector((state) => state.profile.user);
-  console.log(currentUser);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
@@ -280,6 +279,36 @@ const Post = ({ post }) => {
     }
   };
 
+  const statusBadge = () => {
+    switch (post.flag_status_id) {
+      case 1:
+        return t('FlaggedPostsANON.open');
+      case 2:
+        return t('FlaggedPostsANON.inReview');
+      case 3:
+        return t('FlaggedPostsANON.escalated');
+      case null && post.is_resolved:
+        return t('FlaggedPostsANON.resolved');
+      default:
+        return t('FlaggedPostsANON.open');
+    }
+  };
+
+  const statusColor = () => {
+    switch (post.flag_status_id) {
+      case 1:
+        return 'info';
+      case 2:
+        return 'warning';
+      case 3:
+        return 'error';
+      case null && post.is_resolved:
+        return 'success';
+      default:
+        return 'info';
+    }
+  };
+
   return (
     <>
       <Card sx={{ mb: 3, boxShadow: 2 }}>
@@ -332,12 +361,12 @@ const Post = ({ post }) => {
                 {isEditing ? t('PostANON.editingPost') : post.title}
               </Typography>
               <Stack direction="row" spacing={1}>
-                {post.is_resolved && (
+                {post.is_flagged && (
                   <Chip
-                    label={t('PostANON.postResolved')}
-                    color="success"
+                    label={statusBadge(post.flag_status_id)}
+                    color={statusColor(post.flag_status_id)}
                     size="small"
-                    sx={{ fontSize: '0.75rem' }}
+                    sx={{ fontSize: '0.75rem', width: 100 }}
                   />
                 )}
                 <Chip

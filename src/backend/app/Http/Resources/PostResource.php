@@ -8,6 +8,7 @@ use App\Http\Resources\EmployeeResource;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostAttachmentResource;
+use App\Models\FlagPost;
 
 class PostResource extends JsonResource
 {
@@ -25,6 +26,10 @@ class PostResource extends JsonResource
             'upvotes_count' => $this->upvotes_count,
             'comments_count' => $this->comments_count,
             'is_flagged' => $this->isFlagged(),
+            'flag_status_id' => $this->when($this->isFlagged(), function () {
+                $flagPost = FlagPost::where('post_id', $this->id)->latest()->first();
+                return $flagPost?->status_id;
+            }),
             'is_upvoted' => $this->isUpvotedByUser(),
             'is_resolved' => $this->isResolved(),
             'employee' => $this->when($this->employee, [

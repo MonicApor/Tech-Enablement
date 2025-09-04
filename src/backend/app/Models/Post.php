@@ -13,6 +13,7 @@ use App\Models\Comment;
 use App\Models\Chat;
 use App\Models\PostUpvote;
 use App\Models\PostAttachment;
+use App\Models\FlagPost;
 
 class Post extends Model
 {
@@ -91,6 +92,22 @@ class Post extends Model
     public function attachments() : HasMany
     {
         return $this->hasMany(PostAttachment::class);
+    }
+
+    /**
+     * Get the flag posts for the post.
+     */
+    public function flagPosts() : HasMany
+    {
+        return $this->hasMany(FlagPost::class);
+    }
+
+    /**
+     * Get the latest flag post for the post.
+     */
+    public function latestFlagPost() : BelongsTo
+    {
+        return $this->belongsTo(FlagPost::class, 'id', 'post_id')->latest();
     }
 
     // public function views() : HasMany
