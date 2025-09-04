@@ -16,6 +16,7 @@ class FlagPostResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'row_number' => $this->row_number ?? null,
             'post' => $this->when($this->post, [
                 'id' => $this->post?->id,
                 'title' => $this->post?->title,

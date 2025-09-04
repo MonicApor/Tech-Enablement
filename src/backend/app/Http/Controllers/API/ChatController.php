@@ -101,13 +101,14 @@ class ChatController extends Controller
          return response()->json(['message' => 'Cannot create chat with yourself'], 400);
       }
 
-      // Check if chat already exists for this specific post-employee combination
+      // Check if chat already exists for this specific post-employee-HR combination
       $existingChat = Chat::where('post_id', $request->post_id)
          ->where('employee_employee_id', $employeeEmployeeId)
+         ->where('hr_employee_id', $hrEmployeeId)
          ->first();
 
       if ($existingChat) {
-         $existingChat->load(['post', 'employeeUser.employee', 'hrUser']);
+         $existingChat->load(['post', 'employeeUser.user', 'hrUser.user']);
          return response()->json([
             'message' => 'Chat already exists',
             'data' => new ChatResource($existingChat)
@@ -123,7 +124,7 @@ class ChatController extends Controller
          'last_message_at' => now(),
       ]);
 
-      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
+      $chat->load(['post', 'employeeUser.user', 'hrUser.user']);
 
       return response()->json([
          'message' => 'Chat created successfully',
@@ -193,10 +194,7 @@ class ChatController extends Controller
       
       $chat = Chat::where('post_id', $request->post_id)
          ->where('employee_employee_id', $employeeUser->employee->id)
-         ->where(function ($query) use ($user) {
-            $query->where('hr_employee_id', $user->employee->id)
-                  ->orWhere('employee_employee_id', $user->employee->id);
-         })
+         ->where('hr_employee_id', $user->employee->id)
          ->first();
 
       if (!$chat) {
@@ -205,8 +203,16 @@ class ChatController extends Controller
 
       $this->authorize('view', $chat);
 
-      $chat->markAsRead($user->id);
-      $chat->load(['post', 'employeeUser.employee', 'hrUser', 'messages.sender']);
+      $chat->markAsRead($user->employee->id);
+      $chat->load(['post', 'employeeUser.user', 'hrUser.user', 'messages.sender']);
+      
+      // Ensure the other participant's user relationship is loaded
+      if ($chat->employeeUser && !$chat->employeeUser->relationLoaded('user')) {
+          $chat->employeeUser->load('user');
+      }
+      if ($chat->hrUser && !$chat->hrUser->relationLoaded('user')) {
+          $chat->hrUser->load('user');
+      }
       
       return response()->json([
          'data' => new ChatResource($chat)
@@ -243,7 +249,7 @@ class ChatController extends Controller
          'status' => $request->status,
       ]);
 
-      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
+      $chat->load(['post', 'employeeUser.user', 'hrUser.user']);
 
       $message = match($request->status) {
          'active' => 'Chat reopened',
@@ -307,7 +313,7 @@ class ChatController extends Controller
 
       $chat->update(['status' => 'closed']);
 
-      $chat->load(['post', 'employeeUser.employee', 'hrUser']);
+      $chat->load(['post', 'employeeUser.user', 'hrUser.user']);
 
       return response()->json([
          'message' => 'Chat closed successfully',

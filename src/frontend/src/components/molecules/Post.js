@@ -334,7 +334,7 @@ const Post = ({ post }) => {
               <Stack direction="row" spacing={1}>
                 {post.is_resolved && (
                   <Chip
-                    label="This Post has been Resolved"
+                    label={t('PostANON.postResolved')}
                     color="success"
                     size="small"
                     sx={{ fontSize: '0.75rem' }}
@@ -626,7 +626,7 @@ const Post = ({ post }) => {
             {post.is_resolved && (
               <Box sx={{ mb: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary" align="center">
-                  Comments are disabled for resolved posts
+                  {t('PostANON.commentsDisabled')}
                 </Typography>
               </Box>
             )}

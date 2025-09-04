@@ -61,8 +61,13 @@ class FlagPostController extends Controller
 
         $flagPosts = $query->paginate($perPage, ['*'], 'page', $page);
 
+        $flagPostsWithRowNumbers = $flagPosts->getCollection()->map(function ($flagPost, $index) use ($page, $perPage) {
+            $flagPost->row_number = ($page - 1) * $perPage + $index + 1;
+            return $flagPost;
+        });
+
         return response()->json([
-            'data' => FlagPostResource::collection($flagPosts),
+            'data' => FlagPostResource::collection($flagPostsWithRowNumbers),
             'meta' => [
                 'total' => $flagPosts->total(),
                 'per_page' => $perPage,

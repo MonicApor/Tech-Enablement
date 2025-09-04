@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Add as AddIcon, Chat as ChatIcon, Flag, Group as GroupIcon } from '@mui/icons-material';
+import { Add as AddIcon, Chat as ChatIcon, Flag } from '@mui/icons-material';
 import { Box, Button, Card, CardContent, CardHeader } from '@mui/material';
 
 function Sidebar() {
@@ -41,7 +41,7 @@ function Sidebar() {
               {t('FlaggedPostsANON.title')}
             </Button>
           )}
-          <Button
+          {/* <Button
             variant="outline"
             startIcon={<GroupIcon />}
             sx={{
@@ -51,7 +51,7 @@ function Sidebar() {
             }}
           >
             Team Insights
-          </Button>
+          </Button> */}
           <Button
             variant={location.pathname === '/employee/chats' ? 'contained' : 'outline'}
             startIcon={<ChatIcon />}
