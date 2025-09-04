@@ -83,7 +83,7 @@ class BroadcastingController extends Controller
         if (str_starts_with($channelName, 'private-chat.')) {
             $chatId = str_replace('private-chat.', '', $channelName);
             $chat = \App\Models\Chat::find($chatId);
-            $authorized = $chat && $chat->isParticipant($user->id);
+            $authorized = $chat && $user->isEmployee() && $chat->isParticipant($user->employee->id);
         } elseif (str_starts_with($channelName, 'private-user.')) {
             $userId = str_replace('private-user.', '', $channelName);
             $authorized = (int) $user->id === (int) $userId;

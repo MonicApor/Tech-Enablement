@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             EmployeeImportSeeder::class,
             DemoDataSeeder::class,
+            FlagPostSeeder::class,
         ]);
     }
 }

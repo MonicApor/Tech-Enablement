@@ -22,17 +22,42 @@ class PostResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'body' => $this->body,
-            'status' => $this->status,
             'upvotes_count' => $this->upvotes_count,
-            'views_count' => $this->views_count,
             'comments_count' => $this->comments_count,
             'is_flagged' => $this->isFlagged(),
-            'is_resolved' => $this->isResolved(),
             'is_upvoted' => $this->isUpvotedByUser(),
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'employee' => $this->employee ? (new EmployeeResource($this->employee->load('user')))->toArray(request()) : null, 
-            'comments' => CommentResource::collection($this->whenLoaded('comments')),
+            'is_resolved' => $this->isResolved(),
+            'employee' => $this->when($this->employee, [
+                'id' => $this->employee->id,
+                'status' => $this->employee->status,
+                'user' => [
+                    'id' => $this->employee->user->id,
+                    'username' => $this->employee->user->username,
+                    'avatar' => $this->employee->user->avatar,
+                    'role' => $this->employee->user->role,
+                ],
+            ]),
+            'comments' => $this->when($this->relationLoaded('topLevelComments'), function () {
+                return $this->topLevelComments->map(function ($comment) {
+                    return [
+                        'id' => $comment->id,
+                        'body' => $comment->body,
+                        'created_at_human' => $comment->created_at->diffForHumans(),
+                        'upvotes_count' => $comment->upvotes_count,
+                        'is_reply' => !is_null($comment->parent_id),
+                        'is_flagged' => !is_null($comment->flaged_at),
+                        'parent_id' => $comment->parent_id,
+                        'employee' => [
+                            'id' => $comment->employee->id,
+                            'user' => [
+                                'id' => $comment->employee->user->id,
+                                'username' => $comment->employee->user->username,
+                                'avatar' => $comment->employee->user->avatar,
+                            ],
+                        ],
+                    ];
+                });
+            }),
             'category' => new CategoryResource($this->whenLoaded('category')),
             'attachments' => PostAttachmentResource::collection($this->whenLoaded('attachments')),
             'created_at_human' => $this->created_at->diffForHumans(),

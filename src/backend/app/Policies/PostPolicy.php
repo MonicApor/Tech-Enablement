@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Post;
-use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class PostPolicy
@@ -11,28 +11,29 @@ class PostPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the employee can create posts.
+     * Determine whether the user can create posts.
      */
-    public function create(Employee $employee): bool
+    public function create(User $user): bool
     {
-        return true; // Any authenticated employee can create posts
+        // User must have an associated employee record to create posts
+        return $user->isEmployee();
     }
 
     /**
-     * Determine whether the employee can update the post.
+     * Determine whether the user can update the post.
      */
-    public function update(Employee $employee, Post $post): bool
+    public function update(User $user, Post $post): bool
     {
-        // Employees can update their own posts
-        return $employee->id === $post->employee_id;
+        // Users can update their own posts (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $post->employee_id;
     }
 
     /**
-     * Determine whether the employee can delete the post.
+     * Determine whether the user can delete the post.
      */
-    public function delete(Employee $employee, Post $post): bool
+    public function delete(User $user, Post $post): bool
     {
-        // Employees can delete their own posts
-        return $employee->id === $post->employee_id;
+        // Users can delete their own posts (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $post->employee_id;
     }
 }

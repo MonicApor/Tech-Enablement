@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Comment;
-use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CommentPolicy
@@ -11,28 +11,29 @@ class CommentPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the employee can create comments.
+     * Determine whether the user can create comments.
      */
-    public function create(Employee $employee): bool
+    public function create(User $user): bool
     {
-        return true; // Any authenticated employee can create comments
+        // User must have an associated employee record to create comments
+        return $user->isEmployee();
     }
 
     /**
-     * Determine whether the employee can update the comment.
+     * Determine whether the user can update the comment.
      */
-    public function update(Employee $employee, Comment $comment): bool
+    public function update(User $user, Comment $comment): bool
     {
-        // Employees can update their own comments
-        return $employee->id === $comment->employee_id;
+        // Users can update their own comments (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $comment->employee_id;
     }
 
     /**
-     * Determine whether the employee can delete the comment.
+     * Determine whether the user can delete the comment.
      */
-    public function delete(Employee $employee, Comment $comment): bool
+    public function delete(User $user, Comment $comment): bool
     {
-        // Employees can delete their own comments
-        return $employee->id === $comment->employee_id;
+        // Users can delete their own comments (through their employee record)
+        return $user->isEmployee() && $user->employee->id === $comment->employee_id;
     }
 }

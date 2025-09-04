@@ -52,30 +52,30 @@ class Chat extends Model
         return $this->belongsTo(ChatMessage::class, 'last_message_id');
     }
 
-    public function getUnreadMessagesCount(int $userId): int
+    public function getUnreadMessagesCount(int $employeeId): int
     {
         return $this->messages()
-            ->where('sender_id', '!=', $userId)
+            ->where('sender_id', '!=', $employeeId)
             ->whereNull('read_at')
             ->count();
     }
 
-    public function markAsRead(int $userId): void
+    public function markAsRead(int $employeeId): void
     {
         $this->messages()
-            ->where('sender_id', '!=', $userId)
+            ->where('sender_id', '!=', $employeeId)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
     }
 
-    public function isParticipant(int $userId): bool
+    public function isParticipant(int $employeeId): bool
     {
-        return $this->employee_employee_id == $userId || $this->hr_employee_id == $userId;
+        return $this->employee_employee_id == $employeeId || $this->hr_employee_id == $employeeId;
     }
 
-    public function getOtherParticipant(int $userId): ?User
+    public function getOtherParticipant(int $employeeId): ?Employee
     {
-        return $this->employee_employee_id == $userId ? $this->hrUser->user : $this->employeeUser->user;
+        return $this->employee_employee_id == $employeeId ? $this->hrUser : $this->employeeUser;
     }
 
     public function scopeActive($query)
@@ -83,11 +83,11 @@ class Chat extends Model
         return $query->where('status', 'active');
     }
 
-    public function scopeForUser($query, int $userId)
+    public function scopeForUser($query, int $employeeId)
     {
-        return $query->where(function ($query) use ($userId) {
-            $query->where('hr_employee_id', $userId)
-                  ->orWhere('employee_employee_id', $userId);
+        return $query->where(function ($query) use ($employeeId) {
+            $query->where('hr_employee_id', $employeeId)
+                  ->orWhere('employee_employee_id', $employeeId);
         });
     }
 

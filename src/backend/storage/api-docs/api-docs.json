@@ -1752,6 +1752,119 @@
                 ]
             }
         },
+        "/api/flag-posts": {
+            "get": {
+                "tags": [
+                    "FlagPosts"
+                ],
+                "summary": "Get all flag posts",
+                "description": "Display a listing of the resource.",
+                "operationId": "4f8d88da46ddfe0fcdd811f46105e5bb",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/flag-posts/statuses": {
+            "get": {
+                "tags": [
+                    "FlagPosts"
+                ],
+                "summary": "Get all flag post statuses",
+                "description": "Get all flag post statuses",
+                "operationId": "cede7f78476e0e91a629464219192a07",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api": {
             "get": {
                 "tags": [
@@ -2565,6 +2678,158 @@
                 "security": []
             }
         },
+        "/api/oauth/token": {
+            "post": {
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Issue OAuth token for password grant",
+                "description": "Issue OAuth token for password grant",
+                "operationId": "146f62d1469edb6bad6fff037fa67359",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "grant_type",
+                                    "username",
+                                    "password",
+                                    "client_id",
+                                    "client_secret"
+                                ],
+                                "properties": {
+                                    "grant_type": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/oauth/refresh": {
+            "post": {
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Refresh OAuth token",
+                "description": "Refresh OAuth token",
+                "operationId": "86fdfab631f839db313b9bc650067699",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "grant_type",
+                                    "refresh_token",
+                                    "client_id",
+                                    "client_secret"
+                                ],
+                                "properties": {
+                                    "grant_type": {
+                                        "type": "string"
+                                    },
+                                    "refresh_token": {
+                                        "type": "string"
+                                    },
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid refresh token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/api/auth/login": {
             "post": {
                 "tags": [
@@ -3268,6 +3533,10 @@
             "description": "Comment management endpoints"
         },
         {
+            "name": "FlagPosts",
+            "description": "Flag post management endpoints"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication endpoints for Microsoft OAuth"
         },
@@ -3286,6 +3555,10 @@
         {
             "name": "API",
             "description": "API"
+        },
+        {
+            "name": "OAuth",
+            "description": "OAuth"
         }
     ]
 }

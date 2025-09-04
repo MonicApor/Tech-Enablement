@@ -177,12 +177,21 @@ class Post extends Model
         
         $employeeId = $user->employee->id;
         
-        $existingUpvote = $this->upvotes()->where('employee_id', $employeeId)->first();
+        $existingUpvote = PostUpvote::withTrashed()
+            ->where('post_id', $this->id)
+            ->where('employee_id', $employeeId)
+            ->first();
         
         if ($existingUpvote) {
-            $existingUpvote->delete();
-            $this->decrement('upvote_count');
-            return false;
+            if ($existingUpvote->trashed()) {
+                $existingUpvote->restore();
+                $this->increment('upvote_count');
+                return true;
+            } else {
+                $existingUpvote->delete();
+                $this->decrement('upvote_count');
+                return false;
+            }
         } else {
             $this->upvotes()->create(['employee_id' => $employeeId]);
             $this->increment('upvote_count');
@@ -240,7 +249,7 @@ class Post extends Model
 
     public function topLevelComments(): HasMany
     {
-        return $this->hasMany(Comment::class)->whereNull('parent_id');
+        return $this->hasMany(Comment::class)->whereNull('parent_id')->orderBy('created_at', 'desc');
     }
 
     public function allComments(): HasMany
@@ -276,7 +285,7 @@ class Post extends Model
             (upvote_count + total_comments_count + replies_count) / 
             (TIMESTAMPDIFF(HOUR, created_at, NOW()) + 1) DESC
         ')
-        ->with('category');
+        ->with(['category', 'employee.user', 'comments.employee.user']);
     }
 
     /**

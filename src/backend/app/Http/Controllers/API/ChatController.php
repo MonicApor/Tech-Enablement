@@ -36,8 +36,8 @@ class ChatController extends Controller
       $this->authorize('viewAny', Chat::class);
 
       $user = auth()->user();
-      $chats = Chat::forUser($user->id)
-      ->with(['post', 'employeeUser.employee', 'hrUser', 'lastMessage'])
+      $chats = Chat::forUser($user->employee->id)
+      ->with(['post', 'employeeUser.user', 'hrUser.user', 'lastMessage'])
       ->orderBy('last_message_at', 'desc')
       ->get();
 
@@ -73,34 +73,37 @@ class ChatController extends Controller
 
       $user = auth()->user();
 
-      $hrUserId = null;
-      $employeeUserId = null;
+      $hrEmployeeId = null;
+      $employeeEmployeeId = null;
 
-      if ($user->role === 'hr') {
-         $hrUserId = $user->id;
-         $employeeUserId = $request->employee_user_id;
+      if ($user->role_id === 2) {
+         $hrEmployeeId = $user->employee->id;
+         $employeeUser = User::find($request->employee_user_id);
+         if (!$employeeUser || !$employeeUser->employee) {
+            return response()->json(['message' => 'Employee user not found or has no employee record'], 400);
+         }
+         $employeeEmployeeId = $employeeUser->employee->id;
          
-         // Ensure HR user is not trying to create a chat with themselves
-         if ($hrUserId === $employeeUserId) {
+         if ($hrEmployeeId === $employeeEmployeeId) {
             return response()->json(['message' => 'HR user cannot create a chat with themselves'], 400);
          }
       } else {
-         $hrUser = User::where('role', 'hr')->first();
+         $hrUser = User::where('role_id', 2)->first();
          if (!$hrUser) {
             return response()->json(['message' => 'No HR user available'], 400);
          }
-         $hrUserId = $hrUser->id;
-         $employeeUserId = $user->id;
+         $hrEmployeeId = $hrUser->employee->id;
+         $employeeEmployeeId = $user->employee->id;
       }
 
       // Prevent creating chat where HR and employee are the same person
-      if ($hrUserId === $employeeUserId) {
+      if ($hrEmployeeId === $employeeEmployeeId) {
          return response()->json(['message' => 'Cannot create chat with yourself'], 400);
       }
 
       // Check if chat already exists for this specific post-employee combination
       $existingChat = Chat::where('post_id', $request->post_id)
-         ->where('employee_user_id', $employeeUserId)
+         ->where('employee_employee_id', $employeeEmployeeId)
          ->first();
 
       if ($existingChat) {
@@ -114,8 +117,8 @@ class ChatController extends Controller
       // Create new chat
       $chat = Chat::create([
          'post_id' => $request->post_id,
-         'employee_user_id' => $employeeUserId,
-         'hr_user_id' => $hrUserId,
+         'employee_employee_id' => $employeeEmployeeId,
+         'hr_employee_id' => $hrEmployeeId,
          'status' => 'active',
          'last_message_at' => now(),
       ]);
@@ -183,11 +186,16 @@ class ChatController extends Controller
 
       $user = auth()->user();
 
+      $employeeUser = User::find($request->employee_user_id);
+      if (!$employeeUser || !$employeeUser->employee) {
+         return response()->json(['message' => 'Employee user not found or has no employee record'], 400);
+      }
+      
       $chat = Chat::where('post_id', $request->post_id)
-         ->where('employee_user_id', $request->employee_user_id)
+         ->where('employee_employee_id', $employeeUser->employee->id)
          ->where(function ($query) use ($user) {
-            $query->where('hr_user_id', $user->id)
-                  ->orWhere('employee_user_id', $user->id);
+            $query->where('hr_employee_id', $user->employee->id)
+                  ->orWhere('employee_employee_id', $user->employee->id);
          })
          ->first();
 

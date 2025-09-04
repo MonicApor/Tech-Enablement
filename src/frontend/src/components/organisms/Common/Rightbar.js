@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useRecentActivities, useTrendingTopics } from 'services/post.service';
 import { AccessTime, Article, Category, Comment, Flag, Reply, ThumbUp } from '@mui/icons-material';
@@ -8,7 +9,7 @@ import { Box, Card, CardContent, CardHeader, Chip, Typography } from '@mui/mater
 function Rightbar() {
   const { trendingTopics, isLoading, error } = useTrendingTopics();
   const { recentActivities } = useRecentActivities();
-
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const getActivityIcon = (type) => {
@@ -31,15 +32,15 @@ function Rightbar() {
       case 'Post':
         return activity.title;
       case 'Comment':
-        return `Commented: ${activity.body?.substring(0, 50)}${
+        return `${t('rightbarANON.Commented')}: ${activity.body?.substring(0, 50)}${
           activity.body?.length > 50 ? '...' : ''
         }`;
       case 'HrReply':
-        return `HR Reply: ${activity.body?.substring(0, 50)}${
+        return `${t('rightbarANON.HRReply')}: ${activity.body?.substring(0, 50)}${
           activity.body?.length > 50 ? '...' : ''
         }`;
       case 'FlaggedPost':
-        return `Flagged: ${activity.title}`;
+        return `${t('rightbarANON.Flagged')}: ${activity.title}`;
       default:
         return activity.body || 'Unknown activity';
     }
@@ -67,7 +68,7 @@ function Rightbar() {
           title={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <TrendingUp sx={{ mr: 1, fontSize: 20 }} />
-              Trending Topics
+              {t('rightbarANON.trending')}
             </Box>
           }
         />
@@ -75,11 +76,11 @@ function Rightbar() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {isLoading ? (
               <Typography variant="body2" color="text.secondary">
-                Loading trending topics...
+                {t('rightbarANON.trendingLoading')}
               </Typography>
             ) : error ? (
               <Typography variant="body2" color="error">
-                Error loading trending topics
+                {t('rightbarANON.trendingError')}
               </Typography>
             ) : trendingTopics && trendingTopics.length > 0 ? (
               trendingTopics.map((topic, index) => (
@@ -134,11 +135,11 @@ function Rightbar() {
                       </Typography>
                     </Box>
 
-                    {topic.category && (
+                    {topic.category_name && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <Category sx={{ fontSize: 16, color: 'warning.main' }} />
                         <Typography variant="caption" color="text.secondary">
-                          {topic.category.name}
+                          {topic.category_name}
                         </Typography>
                       </Box>
                     )}
@@ -146,14 +147,14 @@ function Rightbar() {
 
                   <Box sx={{ ml: 5 }}>
                     <Typography variant="caption" color="text.secondary">
-                      Posted: {topic.created_at_human}
+                      {t('rightbarANON.PostedAt')} {topic.posted_by} • {topic.created_at_human}
                     </Typography>
                   </Box>
                 </Box>
               ))
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No trending topics available
+                {t('rightbarANON.trendingNoData')}
               </Typography>
             )}
           </Box>
@@ -165,7 +166,7 @@ function Rightbar() {
           title={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <AccessTime sx={{ mr: 1, fontSize: 20 }} />
-              Recent Activity
+              {t('rightbarANON.recent')}
             </Box>
           }
         />
@@ -173,11 +174,11 @@ function Rightbar() {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {isLoading ? (
               <Typography variant="body2" color="text.secondary">
-                Loading recent activities...
+                {t('rightbarANON.recentLoading')}
               </Typography>
             ) : error ? (
               <Typography variant="body2" color="error">
-                Error loading recent activities
+                {t('rightbarANON.recentError')}
               </Typography>
             ) : recentActivities && recentActivities.length > 0 ? (
               recentActivities.map((activity, index) => (
@@ -224,7 +225,7 @@ function Rightbar() {
               ))
             ) : (
               <Typography variant="body2" color="text.secondary">
-                No recent activities available
+                {t('rightbarANON.recentNoData')}
               </Typography>
             )}
           </Box>

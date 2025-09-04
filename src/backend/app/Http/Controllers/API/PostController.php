@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use App\Models\PostAttachment;
+use App\Models\FlagPost;
+use App\Models\Employee;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -44,7 +46,8 @@ class PostController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Post::with(['employee.user', 'category', 'comments', 'attachments'])
+        //only load comments that is parent id is null
+        $query = Post::with(['employee.user', 'category', 'topLevelComments.employee.user', 'attachments'])
             ->active();
 
         // filter by category
@@ -139,6 +142,14 @@ class PostController extends Controller
         try {
             if ($this->shouldFlagPostAI($post->title, $post->body)) {
                 $post->update(['flaged_at' => now()]);
+                
+                // Create flag record in flag_posts table
+                FlagPost::create([
+                    'post_id' => $post->id,
+                    'employee_id' => auth()->user()->employee->id,
+                    'reason' => 'AI Auto-flag: Content flagged by AI moderation system',
+                    'status_id' => 1,
+                ]);
             }
         } catch (\Throwable $e) {
             // Swallow AI errors to not block post creation
@@ -167,7 +178,7 @@ class PostController extends Controller
     {
         $post->incrementViews();
         return response()->json([
-            'data' => new PostResource($post->load('employee.user', 'category', 'comments', 'attachments')),
+            'data' => new PostResource($post->load('employee.user', 'category', 'topLevelComments.employee.user', 'attachments')),
         ]);
     }
 
@@ -239,6 +250,22 @@ class PostController extends Controller
                     }
                 }
             }
+        }
+
+        try {
+            if ($this->shouldFlagPostAI($request->input('title', $post->title), $request->input('body', $post->body))) {
+                $post->update(['flaged_at' => now()]);
+                
+                // Create flag record in flag_posts table
+                FlagPost::create([
+                    'post_id' => $post->id,
+                    'employee_id' => auth()->user()->employee->id,
+                    'reason' => 'AI Auto-flag: Content flagged by AI moderation system',
+                    'status_id' => 1,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // Swallow AI errors to not block post creation
         }
         
         return response()->json([
@@ -314,7 +341,24 @@ class PostController extends Controller
      */
     public function flag(Post $post): JsonResponse
     {
+        if ($post->resolved_at) {
+            return response()->json([
+                'message' => 'Cannot flag a resolved post',
+                'is_flagged' => false,
+            ], 400);
+        }
+
         $isFlagged = $post->toggleFlag();
+        
+        if ($isFlagged) {
+            FlagPost::create([
+                'post_id' => $post->id,
+                'employee_id' => auth()->user()->employee->id,
+                'reason' => 'Manual flag: Post flagged by employee',
+                'status_id' => 1,
+            ]);
+        }
+        
         return response()->json([
             'message' => $isFlagged ? 'Post flagged successfully' : 'Post unflagged successfully',
             'is_flagged' => $isFlagged,
@@ -359,8 +403,22 @@ class PostController extends Controller
      */
     public function upvote(Post $post): JsonResponse
     {
-        
         $isUpvoted = $post->upvote();
+        
+        // Check if 50% of active employees have upvoted
+        $totalActiveEmployees = Employee::where('status', 'active')->count();
+        $upvoteRatio = $post->fresh()->upvotes_count / $totalActiveEmployees;
+        
+        if ($upvoteRatio >= 0.5 && !$post->flaged_at && !$post->resolved_at) {
+            $post->update(['flaged_at' => now()]);
+            
+            FlagPost::create([
+                'post_id' => $post->id,
+                'employee_id' => auth()->user()->employee->id,
+                'reason' => 'Auto-flag: Post reached 50% upvote threshold from active employees',
+                'status_id' => 1,
+            ]);
+        }
         
         return response()->json([
             'message' => $isUpvoted ? 'Post upvoted successfully' : 'Post upvote removed successfully',
@@ -384,8 +442,19 @@ class PostController extends Controller
     public function trendingTopics(): JsonResponse
     {
         $trendingTopics = Post::trending()->get();
+        //instead of the post collection limit the data to be returned
         return response()->json([
-            'data' => PostResource::collection($trendingTopics),
+            'data' => $trendingTopics->map(function ($post) {
+                return [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'posted_by' => $post->employee->user->username,
+                    'comments_count' => $post->comments_count,
+                    'upvotes_count' => $post->upvotes_count,
+                    'created_at_human' => $post->created_at->diffForHumans(),
+                    'category_name' => $post->category->name,
+                ];
+            })
         ]);
     }
 
@@ -409,8 +478,8 @@ class PostController extends Controller
         //get 5 recent posts 
         if (!$user->employee) {
             return response()->json([
-                'message' => 'User does not have an associated employee record',
-            ], 400);
+                'data' => [],
+            ]);
         }
         
         $recentPost = Post::where('employee_id', $user->employee->id)->whereNull('flaged_at')
@@ -425,8 +494,8 @@ class PostController extends Controller
         ]));
 
         //get 5 recent hr replies if current user is hr 
-        if ($user->role === 'hr') {
-            $recentHrReplies = Comment::where('employee_id', $user->employee->id)->latest()->take(5)->get();
+        if ($user->role_id === 2) {
+            $recentHrReplies = Comment::where('employee_id', $user->employee->id)->with('employee.user')->latest()->take(5)->get();
         
 
             //populate activities with recent hr replies
@@ -440,7 +509,7 @@ class PostController extends Controller
         }
 
         //get 5 recent comments of the currecnt user
-        $recentComments = Comment::where('employee_id', $user->employee->id)->latest()->take(5)->get();
+        $recentComments = Comment::where('employee_id', $user->employee->id)->with('employee.user')->latest()->take(5)->get();
 
         //populate activities with recent comments
         $activities = $activities->concat($recentComments->map(fn($comment) => [
@@ -551,8 +620,21 @@ Analyze the following anonymous employee feedback for policy violations. Respond
   "reasons": ["string", ...]
 }
 
-Flag if it includes: harassment/bullying, threats, discrimination, explicit sexual content, hate speech, doxxing, credible accusations without evidence, or clear policy violations. Be conservative; if unclear, set should_flag to false.
+Flag if the content contains ANY of the following:
+- Harassment or bullying
+- Threats or incitement of violence
+- Discrimination (race, gender, religion, etc.)
+- Explicit sexual content
+- Hate speech
+- Doxxing (revealing personal/private information)
+- Unverified or defamatory accusations
+- Clear violations of company policy
 
+Guidelines:
+- Be conservative: if uncertain, set "should_flag": false.
+- Do not add any extra text outside the JSON.
+
+Feedback to review:
 $content
 PROMPT;
     }

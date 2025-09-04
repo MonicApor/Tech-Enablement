@@ -59,7 +59,7 @@ class ChatMessage extends Model
     public function getSenderName(): string
     {
         if ($this->isFromHR()) {
-            return $this->sender->name ?? 'HR Manager';
+            return $this->sender->user->name ?? 'HR Manager';
         }
         return 'Anonymous Employee';
     }
@@ -90,7 +90,7 @@ class ChatMessage extends Model
     public function getSenderDisplayName(): string
     {
         if ($this->isFromHR()) {
-            return $this->sender->name ?? 'HR Manager';
+            return $this->sender->user->name ?? 'HR Manager';
         }
         return 'Anonymous Employee';
     }

@@ -177,6 +177,10 @@ class User extends Authenticatable
      */
     public function chats()
     {
+        if (!$this->isEmployee()) {
+            return Chat::whereRaw('1 = 0'); // Return empty query if no employee record
+        }
+        
         return Chat::where('employee_employee_id', $this->employee->id)
                     ->orWhere('hr_employee_id', $this->employee->id);
     }
