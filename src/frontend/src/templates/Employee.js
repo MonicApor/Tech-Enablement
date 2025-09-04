@@ -55,9 +55,9 @@ export default function Employee() {
           <Box
             sx={{
               width: '100%',
-              maxHeight: 'calc(100vh - 200px)',
-              overflow: 'auto',
-              scrollbarWidth: 'thin',
+              // maxHeight: 'calc(100vh - 200px)',
+              // overflow: 'auto',
+              // scrollbarWidth: 'thin',
             }}
           >
             <Outlet />

@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import {
   updateFlagPostStatus,
   useFlagPostStatuses,
   useFlagPosts,
 } from 'services/flag-post.service';
-import { Chip, FormControl, MenuItem, Select, Typography } from '@mui/material';
+import { Chip, FormControl, MenuItem, Select } from '@mui/material';
 import Box from '@mui/material/Box';
 import DataTable from 'components/molecules/DataTable';
 
@@ -16,6 +17,7 @@ function FlagPost() {
 
   const { flagPosts, meta, mutate } = useFlagPosts(page, search, sort);
   const { flagPostStatuses } = useFlagPostStatuses();
+  const { t } = useTranslation();
 
   const handleStatusChange = useCallback(
     async (flagPostId, newStatusId) => {
@@ -47,12 +49,32 @@ function FlagPost() {
 
   const headers = [
     { id: 'row_number', numeric: false, disablePadding: false, label: 'No' },
-    { id: 'post.title', numeric: false, disablePadding: false, label: 'Post Title' },
-    { id: 'employee.username', numeric: false, disablePadding: false, label: 'Flagged By' },
-    { id: 'reason', numeric: false, disablePadding: false, label: 'Reason' },
-    { id: 'status_id', numeric: false, disablePadding: false, label: 'Status' },
-    { id: 'post.flaged_at', numeric: false, disablePadding: false, label: 'Flagged At' },
-    { id: 'escalated_at', numeric: false, disablePadding: false, label: 'Escalated At' },
+    {
+      id: 'post.title',
+      numeric: false,
+      disablePadding: false,
+      label: t('FlaggedPostsANON.postTitle'),
+    },
+    {
+      id: 'employee.username',
+      numeric: false,
+      disablePadding: false,
+      label: t('FlaggedPostsANON.flaggedBy'),
+    },
+    { id: 'reason', numeric: false, disablePadding: false, label: t('FlaggedPostsANON.reason') },
+    { id: 'status_id', numeric: false, disablePadding: false, label: t('FlaggedPostsANON.status') },
+    {
+      id: 'post.flaged_at',
+      numeric: false,
+      disablePadding: false,
+      label: t('FlaggedPostsANON.flaggedAt'),
+    },
+    {
+      id: 'escalated_at',
+      numeric: false,
+      disablePadding: false,
+      label: t('FlaggedPostsANON.escalatedAt'),
+    },
   ];
 
   const renderStatusCell = (row) => {
@@ -84,13 +106,8 @@ function FlagPost() {
     );
   };
 
-  const renderRowNumberCell = (row) => {
-    return <Typography variant="body2">{row.row_number}</Typography>;
-  };
-
   const customRenderers = {
     status_id: renderStatusCell,
-    row_number: renderRowNumberCell,
   };
 
   return (
