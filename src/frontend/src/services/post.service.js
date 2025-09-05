@@ -122,6 +122,17 @@ export const useFlagPost = async (id) => {
   return response.data;
 };
 
+export const trackPostView = async (id) => {
+  try {
+    const response = await api.post(`/posts/${id}/view`);
+    mutate((key) => key && key.startsWith('/posts'));
+    return response.data;
+  } catch (error) {
+    console.warn('Failed to track post view:', error);
+    return null;
+  }
+};
+
 export const useTrendingTopics = () => {
   const { data, error, mutate, isLoading } = useSWR('/posts/trending-topics', fetcher, {
     revalidateOnFocus: false,

@@ -293,6 +293,10 @@ const ja = {
       status: '状態',
       flaggedAt: 'フラグ付け日時',
       escalatedAt: 'スケールアップ日時',
+      open: 'オープン',
+      inReview: 'レビュー中',
+      escalated: 'スケールアップ',
+      resolved: '解決',
     },
     ChatsANON: {
       title: 'コンバージョン',

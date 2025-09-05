@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class FlagPost extends Model
 {
@@ -61,6 +62,14 @@ class FlagPost extends Model
     }
 
     /**
+     * get the escalated post.
+     */
+    public function escalatedPost(): HasOne
+    {
+        return $this->hasOne(EscalatedPost::class);
+    }
+
+    /**
      * Scope to get only escalated flags.
      */
     public function scopeEscalated($query)
@@ -84,6 +93,64 @@ class FlagPost extends Model
         return $query->whereHas('status', function($q) use ($statusName) {
             $q->where('name', $statusName);
         });
+    }
+
+    /**
+     * check if the flag post needs to be escalated
+     */
+    public function needsEscalation() : bool
+    {
+        //if escalated no need
+        if ($this->escalated_at) {
+            return false;
+        }
+        //if status is escalated no need
+        if ($this->status_id == 3) {
+            return false;
+        }
+        //if status is != open no need
+        if ($this->status_id != 1) {
+            return false;
+        }
+        
+        if($this->hr_employee_id) {
+            return false;
+        }
+        
+        if($this->getDaysSinceCreation() >= 6) {
+            return true;
+        }
+        return false;
+    }
+
+    public function needsEmailReminder() : bool
+    {
+
+        if($this->status_id == 3) {
+            return false;
+        }
+        
+        if($this->escalated_at) {
+            return false;
+        }
+        
+        if($this->status_id != 1) {
+            return false;
+        }
+
+        if($this->hr_employee_id) {
+            return false;
+        }
+        
+        if($this->getDaysSinceCreation() >= 3) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getDaysSinceCreation() : int
+    {
+        return $this->created_at->diffInDays(now());
     }
 
     

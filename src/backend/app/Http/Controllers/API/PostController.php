@@ -176,7 +176,10 @@ class PostController extends Controller
      */
     public function show(Post $post): JsonResponse
     {
-        $post->incrementViews();
+        $employeeId = auth()->user()->employee->id;
+        if($employeeId) {
+            $post->isMarkedAsViewedByUser($employeeId);
+        }
         return response()->json([
             'data' => new PostResource($post->load('employee.user', 'category', 'topLevelComments.employee.user', 'attachments')),
         ]);
@@ -405,20 +408,8 @@ class PostController extends Controller
     {
         $isUpvoted = $post->upvote();
         
-        // Check if 50% of active employees have upvoted
-        $totalActiveEmployees = Employee::where('status', 'active')->count();
-        $upvoteRatio = $post->fresh()->upvotes_count / $totalActiveEmployees;
-        
-        if ($upvoteRatio >= 0.5 && !$post->flaged_at && !$post->resolved_at) {
-            $post->update(['flaged_at' => now()]);
-            
-            FlagPost::create([
-                'post_id' => $post->id,
-                'employee_id' => auth()->user()->employee->id,
-                'reason' => 'Auto-flag: Post reached 50% upvote threshold from active employees',
-                'status_id' => 1,
-            ]);
-        }
+        // Check flagging criteria based on upvotes and views
+        $this->checkPostFlaggingCriteria($post);
         
         return response()->json([
             'message' => $isUpvoted ? 'Post upvoted successfully' : 'Post upvote removed successfully',
@@ -455,6 +446,36 @@ class PostController extends Controller
                     'category_name' => $post->category->name,
                 ];
             })
+        ]);
+    }
+
+    /**
+     * Track a post view
+     * 
+     * @OA\Post(
+     *     path="/api/posts/{id}/view",
+     *     summary="Track a post view",
+     *     tags={"Posts"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success", @OA\JsonContent(type="object", @OA\Property(property="message", type="string"), @OA\Property(property="is_new_view", type="boolean"), @OA\Property(property="views_count", type="integer"))),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/Error"))
+     * )
+     */
+    public function trackView(Post $post): JsonResponse
+    {
+        $employeeId = auth()->user()->employee->id;
+        $isNewView = $post->isMarkedAsViewedByUser($employeeId);
+        
+        if ($isNewView) {
+            $this->checkPostFlaggingCriteria($post);
+        }
+        
+        return response()->json([
+            'message' => $isNewView ? 'View recorded successfully' : 'Post already viewed',
+            'is_new_view' => $isNewView,
+            'views_count' => $post->fresh()->viewer_count ?? 0,
         ]);
     }
 
@@ -637,5 +658,75 @@ Guidelines:
 Feedback to review:
 $content
 PROMPT;
+    }
+
+    /**
+     * Check if a post should be flagged based on upvotes and views
+     */
+    private function checkPostFlaggingCriteria(Post $post): void
+    {
+        if ($post->flaged_at || $post->resolved_at) {
+            return;
+        }
+
+        $totalActiveEmployees = Employee::where('status', 'active')->count();
+        $freshPost = $post->fresh();
+        
+        $upvoteCount = $freshPost->upvotes_count ?? 0;
+        $viewCount = $freshPost->viewer_count ?? 0;
+        
+        $upvoteRatio = $upvoteCount / $totalActiveEmployees;
+        $viewRatio = $viewCount / $totalActiveEmployees;
+        
+        $shouldFlag = false;
+        $reason = '';
+        
+        // Criteria 1: High upvote ratio (50% of active employees)
+        if ($upvoteRatio >= 0.5) {
+            $shouldFlag = true;
+            $reason = 'Auto-flag: Post reached 50% upvote threshold from active employees';
+        }
+        // Criteria 2: High view ratio (70% of active employees) with moderate upvotes
+        elseif ($viewRatio >= 0.7 && $upvoteCount >= 3) {
+            $shouldFlag = true;
+            $reason = 'Auto-flag: Post has high view count (70% of employees) with moderate upvotes';
+        }
+        // Criteria 3: Very high view count (80% of active employees) regardless of upvotes
+        elseif ($viewRatio >= 0.8) {
+            $shouldFlag = true;
+            $reason = 'Auto-flag: Post has very high view count (80% of employees)';
+        }
+        // Criteria 4: Combination of views and upvotes (engagement score)
+        elseif ($this->calculateEngagementScore($upvoteCount, $viewCount, $totalActiveEmployees) >= 0.6) {
+            $shouldFlag = true;
+            $reason = 'Auto-flag: Post has high engagement score (combination of views and upvotes)';
+        }
+        
+        if ($shouldFlag) {
+            $post->update(['flaged_at' => now()]);
+            
+            FlagPost::create([
+                'post_id' => $post->id,
+                'employee_id' => auth()->user()->employee->id,
+                'reason' => $reason,
+                'status_id' => 1,
+            ]);
+        }
+    }
+
+    /**
+     * Calculate engagement score based on upvotes and views
+     */
+    private function calculateEngagementScore(int $upvotes, int $views, int $totalEmployees): float
+    {
+        if ($totalEmployees === 0) return 0;
+        
+        $upvoteWeight = 0.7; // Upvotes are more important
+        $viewWeight = 0.3;   // Views are less important
+        
+        $upvoteScore = ($upvotes / $totalEmployees) * $upvoteWeight;
+        $viewScore = ($views / $totalEmployees) * $viewWeight;
+        
+        return $upvoteScore + $viewScore;
     }
 }

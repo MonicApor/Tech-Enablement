@@ -296,6 +296,10 @@ const en = {
       status: 'Status',
       flaggedAt: 'Flagged At',
       escalatedAt: 'Escalated At',
+      open: 'Open',
+      inReview: 'In Review',
+      escalated: 'Escalated',
+      resolved: 'Resolved',
     },
     ChatsANON: {
       title: 'Conversations',

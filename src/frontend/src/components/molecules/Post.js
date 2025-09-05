@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -13,7 +13,7 @@ import {
   deleteComment,
   updateComment,
 } from 'services/comment.service';
-import { updatePost, useDeletePost, useUpvotePost } from 'services/post.service';
+import { trackPostView, updatePost, useDeletePost, useUpvotePost } from 'services/post.service';
 import { postSchema } from 'validations/post';
 import {
   Chat as ChatIcon,
@@ -59,7 +59,6 @@ const Post = ({ post }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const currentUser = useSelector((state) => state.profile.user);
-  console.log(currentUser);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [replyTo, setReplyTo] = useState(null);
@@ -75,6 +74,13 @@ const Post = ({ post }) => {
   const [newFiles, setNewFiles] = useState([]);
   const [attachmentsToRemove, setAttachmentsToRemove] = useState([]);
   const { categories } = useCategories();
+
+  // Track post view when component mounts
+  useEffect(() => {
+    if (post.id && !post.is_viewed) {
+      trackPostView(post.id);
+    }
+  }, [post.id, post.is_viewed]);
 
   // const { comments, isLoading: isLoadingComments } = useComments(post.id);
 
@@ -280,6 +286,36 @@ const Post = ({ post }) => {
     }
   };
 
+  const statusBadge = () => {
+    switch (post.flag_status_id) {
+      case 1:
+        return t('FlaggedPostsANON.open');
+      case 2:
+        return t('FlaggedPostsANON.inReview');
+      case 3:
+        return t('FlaggedPostsANON.escalated');
+      case null && post.is_resolved:
+        return t('FlaggedPostsANON.resolved');
+      default:
+        return t('FlaggedPostsANON.open');
+    }
+  };
+
+  const statusColor = () => {
+    switch (post.flag_status_id) {
+      case 1:
+        return 'info';
+      case 2:
+        return 'warning';
+      case 3:
+        return 'error';
+      case null && post.is_resolved:
+        return 'success';
+      default:
+        return 'info';
+    }
+  };
+
   return (
     <>
       <Card sx={{ mb: 3, boxShadow: 2 }}>
@@ -332,12 +368,12 @@ const Post = ({ post }) => {
                 {isEditing ? t('PostANON.editingPost') : post.title}
               </Typography>
               <Stack direction="row" spacing={1}>
-                {post.is_resolved && (
+                {post.is_flagged && (
                   <Chip
-                    label={t('PostANON.postResolved')}
-                    color="success"
+                    label={statusBadge(post.flag_status_id)}
+                    color={statusColor(post.flag_status_id)}
                     size="small"
-                    sx={{ fontSize: '0.75rem' }}
+                    sx={{ fontSize: '0.75rem', width: 100 }}
                   />
                 )}
                 <Chip
@@ -356,9 +392,12 @@ const Post = ({ post }) => {
                 by {post.employee.user.username} • {post.created_at_human}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Visibility fontSize="small" color="action" />
-                <Typography variant="caption" color="text.secondary">
-                  {post.views_count}
+                <Visibility fontSize="small" color={post.is_viewed ? 'primary' : 'action'} />
+                <Typography
+                  variant="caption"
+                  color={post.is_viewed ? 'primary.main' : 'text.secondary'}
+                >
+                  {post.views_count || 0}
                 </Typography>
               </Box>
             </Box>

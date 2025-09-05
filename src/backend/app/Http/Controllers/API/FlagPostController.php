@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\FlagPost;
 use App\Http\Resources\FlagPostResource;
 use App\Models\FlagPostStatus;
+use App\Services\PostEscalataionService;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -17,6 +18,12 @@ use Illuminate\Http\JsonResponse;
  */
 class FlagPostController extends Controller
 {
+    protected $escalationService;
+
+    public function __construct(PostEscalataionService $escalationService)
+    {
+        $this->escalationService = $escalationService;
+    }
     
     /**
      * Display a listing of the resource.
@@ -140,6 +147,11 @@ class FlagPostController extends Controller
             ]);
         }
 
+        // If status is 3 (Escalated), trigger escalation process
+        if ($request->status_id == 3) {
+            $this->triggerEscalation($flagPost);
+        }
+
         $flagPost->update([
             'status_id' => $request->status_id,
             'hr_employee_id' => $user->employee->id,
@@ -150,5 +162,18 @@ class FlagPostController extends Controller
             'message' => 'Flag post status updated successfully',
             'data' => new FlagPostResource($flagPost->fresh(['post', 'employee.user', 'hrEmployee'])),
         ]);
+    }
+
+    /**
+     * Trigger escalation process using the existing service
+     */
+    private function triggerEscalation(FlagPost $flagPost): void
+    {
+        try {
+            // Use the injected PostEscalationService to handle escalation
+            $this->escalationService->escalatePost($flagPost, false); // false = escalated by HR manually
+        } catch (\Exception $e) {
+            \Log::error('Failed to trigger escalation: ' . $e->getMessage());
+        }
     }
 }

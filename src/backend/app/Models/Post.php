@@ -13,6 +13,8 @@ use App\Models\Comment;
 use App\Models\Chat;
 use App\Models\PostUpvote;
 use App\Models\PostAttachment;
+use App\Models\FlagPost;
+use App\Models\PostView;
 
 class Post extends Model
 {
@@ -91,6 +93,30 @@ class Post extends Model
     public function attachments() : HasMany
     {
         return $this->hasMany(PostAttachment::class);
+    }
+
+    /**
+     * Get the flag posts for the post.
+     */
+    public function flagPosts() : HasMany
+    {
+        return $this->hasMany(FlagPost::class);
+    }
+
+    /**
+     * Get the views for the post.
+     */
+    public function views() : HasMany
+    {
+        return $this->hasMany(PostView::class);
+    }
+
+    /**
+     * Get the latest flag post for the post.
+     */
+    public function latestFlagPost() : BelongsTo
+    {
+        return $this->belongsTo(FlagPost::class, 'id', 'post_id')->latest();
     }
 
     // public function views() : HasMany
@@ -282,10 +308,49 @@ class Post extends Model
         ->where('resolved_at', null)
         ->where('status', 'active')
         ->orderByRaw('
-            (upvote_count + total_comments_count + replies_count) / 
+            (upvote_count + (viewer_count * 0.3) + total_comments_count + replies_count) / 
             (TIMESTAMPDIFF(HOUR, created_at, NOW()) + 1) DESC
         ')
         ->with(['category', 'employee.user', 'comments.employee.user']);
+    }
+
+    public function isMarkedAsViewedByUser($employeeId): bool
+    {
+        // Check if user has already viewed this post
+        $existingView = PostView::where('post_id', $this->id)
+            ->where('employee_id', $employeeId)
+            ->first();
+
+        if ($existingView) {
+            return false; // Already viewed, no new view recorded
+        }
+
+        // Create new view record
+        PostView::create([
+            'post_id' => $this->id,
+            'employee_id' => $employeeId,
+        ]);
+
+        // Increment view count
+        $this->incrementViews();
+        return true; // New view recorded
+    }
+
+    /**
+     * Check if the current employee has viewed this post.
+     */
+    public function isViewedByUser()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+        
+        $user = auth()->user();
+        if (!$user->employee) {
+            return false;
+        }
+        
+        return $this->views()->where('employee_id', $user->employee->id)->exists();
     }
 
     /**
