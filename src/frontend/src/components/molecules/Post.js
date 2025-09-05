@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -13,7 +13,7 @@ import {
   deleteComment,
   updateComment,
 } from 'services/comment.service';
-import { updatePost, useDeletePost, useUpvotePost } from 'services/post.service';
+import { trackPostView, updatePost, useDeletePost, useUpvotePost } from 'services/post.service';
 import { postSchema } from 'validations/post';
 import {
   Chat as ChatIcon,
@@ -74,6 +74,13 @@ const Post = ({ post }) => {
   const [newFiles, setNewFiles] = useState([]);
   const [attachmentsToRemove, setAttachmentsToRemove] = useState([]);
   const { categories } = useCategories();
+
+  // Track post view when component mounts
+  useEffect(() => {
+    if (post.id && !post.is_viewed) {
+      trackPostView(post.id);
+    }
+  }, [post.id, post.is_viewed]);
 
   // const { comments, isLoading: isLoadingComments } = useComments(post.id);
 
@@ -385,9 +392,12 @@ const Post = ({ post }) => {
                 by {post.employee.user.username} • {post.created_at_human}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Visibility fontSize="small" color="action" />
-                <Typography variant="caption" color="text.secondary">
-                  {post.views_count}
+                <Visibility fontSize="small" color={post.is_viewed ? 'primary' : 'action'} />
+                <Typography
+                  variant="caption"
+                  color={post.is_viewed ? 'primary.main' : 'text.secondary'}
+                >
+                  {post.views_count || 0}
                 </Typography>
               </Box>
             </Box>

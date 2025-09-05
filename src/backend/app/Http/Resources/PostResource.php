@@ -24,6 +24,7 @@ class PostResource extends JsonResource
             'title' => $this->title,
             'body' => $this->body,
             'upvotes_count' => $this->upvotes_count,
+            'views_count' => $this->viewer_count ?? 0,
             'comments_count' => $this->comments_count,
             'is_flagged' => $this->isFlagged(),
             'flag_status_id' => $this->when($this->isFlagged(), function () {
@@ -31,6 +32,7 @@ class PostResource extends JsonResource
                 return $flagPost?->status_id;
             }),
             'is_upvoted' => $this->isUpvotedByUser(),
+            'is_viewed' => $this->isViewedByUser(),
             'is_resolved' => $this->isResolved(),
             'employee' => $this->when($this->employee, [
                 'id' => $this->employee->id,

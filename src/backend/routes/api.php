@@ -46,6 +46,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/posts/recent-activities', [PostController::class, 'recentActivities']);
     Route::apiResource('/posts', PostController::class);
     Route::post('/posts/{post}/upvote', [PostController::class, 'upvote']);
+    Route::post('/posts/{post}/view', [PostController::class, 'trackView']);
     Route::post('/posts/{post}/flag', [PostController::class, 'flag']);
     Route::post('/posts/{post}/resolve', [PostController::class, 'resolve']);
 });
